@@ -17,7 +17,6 @@ fd-find
 gh
 zoxide
 htop
-tldr
 tree
 
 # Notes — installed from GitHub Releases by install.sh (not in apt or outdated):
@@ -26,3 +25,4 @@ tree
 #   lazygit   — tarball from https://github.com/jesseduffield/lazygit/releases
 #   eza       — tarball from https://github.com/eza-community/eza/releases
 #   starship  — install script from https://starship.rs/install.sh
+#   tldr      — tealdeer binary from https://github.com/dbrgn/tealdeer/releases

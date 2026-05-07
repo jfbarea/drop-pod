@@ -153,6 +153,20 @@ install_linux_extras() {
   else
     ok "starship already installed"
   fi
+
+  # tldr (tealdeer) — not in apt on Debian/Raspbian
+  if ! command -v tldr &>/dev/null; then
+    step "Installing tldr (tealdeer)..."
+    case "$ARCH" in
+      x86_64)  url="https://github.com/dbrgn/tealdeer/releases/latest/download/tealdeer-linux-x86_64-musl" ;;
+      aarch64) url="https://github.com/dbrgn/tealdeer/releases/latest/download/tealdeer-linux-arm-musleabihf" ;;
+    esac
+    sudo curl -fsSL "$url" -o /usr/local/bin/tldr
+    sudo chmod +x /usr/local/bin/tldr
+    ok "tldr installed"
+  else
+    ok "tldr already installed"
+  fi
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
