@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "theme": "dark",
+  "agentPushNotifEnabled": true,
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Bash(*)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~)",
+      "Bash(rm -rf ~/)",
+      "Bash(rm -rf /home*)",
+      "Bash(rm -rf /usr*)",
+      "Bash(rm -rf /etc*)",
+      "Bash(rm -rf /var*)",
+      "Bash(sudo rm -rf *)",
+      "Bash(sudo rm -f /etc*)",
+      "Bash(sudo rm -f /usr*)",
+      "Bash(npm publish)",
+      "Bash(npm publish *)",
+      "Bash(twine upload *)",
+      "Bash(cargo publish)",
+      "Bash(cargo publish *)",
+      "Bash(gem push *)",
+      "Bash(aws ec2 run-instances *)",
+      "Bash(aws rds create-db-instance *)",
+      "Bash(aws lambda create-function *)",
+      "Bash(aws ecs run-task *)",
+      "Bash(aws eks create-cluster *)",
+      "Bash(aws s3api create-bucket *)",
+      "Bash(gcloud compute instances create *)",
+      "Bash(gcloud container clusters create *)",
+      "Bash(gcloud sql instances create *)",
+      "Bash(az vm create *)",
+      "Bash(az aks create *)",
+      "Bash(supabase db reset)",
+      "Bash(supabase db reset *)",
+      "Bash(curl * | bash)",
+      "Bash(curl * | bash *)",
+      "Bash(curl * | sh)",
+      "Bash(curl * | sh *)",
+      "Bash(wget * | bash)",
+      "Bash(wget * | bash *)",
+      "Bash(wget * | sh)",
+      "Bash(wget * -O- | bash)",
+      "Bash(watch * claude *)",
+      "Bash(while * claude *)",
+      "Bash(for * claude *)"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/notify-stop.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
