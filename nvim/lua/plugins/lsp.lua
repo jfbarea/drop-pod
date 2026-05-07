@@ -24,26 +24,26 @@ return {
       "hrsh7th/cmp-nvim-lsp",
     },
     config = function()
-      local lspconfig = require("lspconfig")
       local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
-      local servers = { "ts_ls", "pyright", "lua_ls" }
-      for _, server in ipairs(servers) do
-        lspconfig[server].setup({ capabilities = capabilities })
-      end
+      -- Apply capabilities to all servers
+      vim.lsp.config("*", { capabilities = capabilities })
+
+      -- Enable servers
+      vim.lsp.enable({ "ts_ls", "pyright", "lua_ls" })
 
       -- LSP keymaps attach when a server connects to a buffer
       vim.api.nvim_create_autocmd("LspAttach", {
         callback = function(args)
           local opts = { buffer = args.buf }
           local map = vim.keymap.set
-          map("n", "gd", vim.lsp.buf.definition, opts)
-          map("n", "gr", vim.lsp.buf.references, opts)
-          map("n", "K",  vim.lsp.buf.hover, opts)
-          map("n", "<leader>rn", vim.lsp.buf.rename, opts)
-          map("n", "<leader>ca", vim.lsp.buf.code_action, opts)
-          map("n", "[d", vim.diagnostic.goto_prev, opts)
-          map("n", "]d", vim.diagnostic.goto_next, opts)
+          map("n", "gd",         vim.lsp.buf.definition,   opts)
+          map("n", "gr",         vim.lsp.buf.references,   opts)
+          map("n", "K",          vim.lsp.buf.hover,        opts)
+          map("n", "<leader>rn", vim.lsp.buf.rename,       opts)
+          map("n", "<leader>ca", vim.lsp.buf.code_action,  opts)
+          map("n", "[d",         vim.diagnostic.goto_prev, opts)
+          map("n", "]d",         vim.diagnostic.goto_next, opts)
         end,
       })
     end,
