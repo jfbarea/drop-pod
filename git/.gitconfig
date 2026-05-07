@@ -1,0 +1,39 @@
+[user]
+	name  = Fran
+	email = jfcobarea@gmail.com
+
+[init]
+	defaultBranch = main
+
+[pull]
+	rebase = true
+
+[push]
+	autoSetupRemote = true
+
+[core]
+	pager        = delta
+	excludesFile = ~/.gitignore_global
+
+[interactive]
+	diffFilter = delta --color-only
+
+[delta]
+	navigate    = true
+	side-by-side = true
+	line-numbers = true
+	syntax-theme = Dracula
+
+[merge]
+	conflictstyle = zdiff3
+
+[diff]
+	colorMoved = default
+
+[alias]
+	st   = status -sb
+	co   = checkout
+	br   = branch -v
+	lg   = log --oneline --graph --decorate --all
+	last = log -1 HEAD --stat
+	undo = reset HEAD~1 --mixed
