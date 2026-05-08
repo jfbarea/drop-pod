@@ -57,5 +57,8 @@ fi
 # ── NTFY ──────────────────────────────────────────────────────────────────
 export NTFY_TOPIC=sabes-que-notificacion   # Claude Code notifications
 
+# ── Claude Code helpers ───────────────────────────────────────────────────
+[[ -f "$HOME/.config/zsh/claude-helpers.sh" ]] && source "$HOME/.config/zsh/claude-helpers.sh"
+
 # ── Bienvenida Tolkien (solo en login SSH) ────────────────────────────────
 [[ -n "${SSH_CONNECTION:-}" && -f "$HOME/.motd.sh" ]] && source "$HOME/.motd.sh"

@@ -8,7 +8,7 @@ Configuración portable para arrancar una máquina nueva en minutos.
 |---|---|
 | **nvim/** | Neovim con lazy.nvim, LSP, Telescope, Treesitter, nvim-cmp |
 | **git/** | `.gitconfig` con aliases, delta como pager, opciones de pull/push |
-| **claude/** | `settings.json` de Claude Code + hook Stop con notificación ntfy.sh |
+| **claudeconfig/** | `settings.json` de Claude Code + hook Stop + agentes y comandos multi-agente |
 | **packages/** | `Brewfile` (macOS) y `apt-packages.txt` (Linux/Raspberry Pi) |
 | **templates/** | Plantilla global `CLAUDE.md` para proyectos |
 
@@ -108,11 +108,20 @@ dotfiles/
 │   └── lua/
 │       ├── config/        # options, keymaps, lazy bootstrap
 │       └── plugins/       # un fichero por categoría
-├── claude/
+├── claudeconfig/
 │   └── .claude/
 │       ├── settings.json
-│       └── hooks/
-│           └── notify-stop.sh
+│       ├── hooks/
+│       │   └── notify-stop.sh
+│       ├── agents/
+│       │   ├── architect.md
+│       │   ├── builder.md
+│       │   └── reviewer.md
+│       └── commands/
+│           ├── scaffold.md
+│           ├── feature.md
+│           ├── quick.md
+│           └── milestone-run.md
 ├── templates/
 │   └── CLAUDE.md
 ├── packages/
@@ -121,6 +130,56 @@ dotfiles/
 ├── install.sh
 └── README.md
 ```
+
+## Claude Code multi-agent setup
+
+Tres comandos disponibles globalmente en cualquier sesión de Claude Code:
+
+| Comando | Cuándo usarlo |
+|---|---|
+| `/scaffold` | Proyecto nuevo desde cero (greenfield): crea SPEC.md, plan y cicla hitos |
+| `/feature` | Añadir una feature a un repo existente sin tocar el plan actual |
+| `/quick` | Bugfix puntual, pregunta rápida o cambio pequeño sin crear estado |
+
+Internamente los comandos delegan en tres subagentes (`architect`, `builder`, `reviewer`) que se coordinan automáticamente.
+
+### Instalación
+
+Los archivos se instalan junto al resto de dotfiles con:
+
+```bash
+./install.sh
+```
+
+O si solo quieres instalar el bloque de Claude Code:
+
+```bash
+stow --dir=. --target="$HOME" --no-folding --restow claudeconfig
+```
+
+Los ficheros quedan en:
+
+```
+~/.claude/agents/architect.md
+~/.claude/agents/builder.md
+~/.claude/agents/reviewer.md
+~/.claude/commands/scaffold.md
+~/.claude/commands/feature.md
+~/.claude/commands/quick.md
+~/.claude/commands/milestone-run.md
+```
+
+### Helper de shell: `claude-new`
+
+Disponible tras instalar los dotfiles (sourced desde `.zshrc`):
+
+```bash
+claude-new <nombre-proyecto>
+```
+
+Crea `~/src/<nombre>`, inicializa un repo git y te deja listo para ejecutar `/scaffold` dentro de Claude Code.
+
+---
 
 ## Atajos principales de Neovim
 
