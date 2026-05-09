@@ -11,8 +11,8 @@
       "Bash(pnpm lint)",
       "Bash(pnpm typecheck)",
       "Bash(fuser *)",
-      "Write(**/.claude/*)",
-      "Edit(**/.claude/*)"
+      "Write(*)",
+      "Edit(*)"
     ],
     "deny": [
       "Bash(rm -rf /)",
@@ -55,7 +55,15 @@
       "Bash(wget * -O- | bash)",
       "Bash(watch * claude *)",
       "Bash(while * claude *)",
-      "Bash(for * claude *)"
+      "Bash(for * claude *)",
+      "Write(/etc/*)",
+      "Write(/usr/*)",
+      "Write(/boot/*)",
+      "Write(~/.ssh/*)",
+      "Edit(/etc/*)",
+      "Edit(/usr/*)",
+      "Edit(/boot/*)",
+      "Edit(~/.ssh/*)"
     ]
   },
   "hooks": {
