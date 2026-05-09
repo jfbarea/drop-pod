@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /home/fran/drop-pod/test.sh 2>&1 | tail -5",
+            "statusMessage": "Verificando instalación..."
+          }
+        ]
+      }
+    ]
+  }
+}
