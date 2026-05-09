@@ -5,7 +5,12 @@
   "permissions": {
     "defaultMode": "acceptEdits",
     "allow": [
-      "Bash(*)"
+      "Bash(*)",
+      "Bash(npx tsc --noEmit *)",
+      "Bash(npm list *)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm typecheck)",
+      "Bash(fuser *)"
     ],
     "deny": [
       "Bash(rm -rf /)",
