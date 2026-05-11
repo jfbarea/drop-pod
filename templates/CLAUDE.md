@@ -19,6 +19,7 @@
 - Idioma del código y comentarios: **inglés**
 - Idioma de docs, README y mensajes: **español**
 - Commits: formato convencional (`feat:`, `fix:`, `refactor:`, `chore:`, `docs:`, …)
+- Commits atómicos: un cambio lógico por commit. Si hay varios cambios independientes, commits separados. El árbol debe compilar y los tests pasar en cada commit.
 - Rama principal: `main`
 
 <!-- Añade aquí linters, formatters y sus comandos. -->
