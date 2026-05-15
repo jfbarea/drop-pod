@@ -45,6 +45,20 @@ if command -v bat &>/dev/null; then
   alias cat="bat --paging=never"
 fi
 
+# ── Helpers ───────────────────────────────────────────────────────────────────
+# Sirve el directorio actual por HTTP. Auto-busca puerto libre desde 8642.
+serve() {
+  local port="${1:-8642}"
+  while command -v ss >/dev/null && ss -tln 2>/dev/null | grep -q ":$port "; do
+    port=$((port + 1))
+  done
+  local ip
+  ip=$(hostname -I 2>/dev/null | awk '{print $1}')
+  echo "→ http://localhost:$port"
+  [[ -n "$ip" ]] && echo "→ http://$ip:$port  (LAN)"
+  python3 -m http.server "$port"
+}
+
 # ── Zoxide ────────────────────────────────────────────────────────────────────
 if command -v zoxide &>/dev/null; then
   eval "$(zoxide init zsh)"

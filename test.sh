@@ -135,6 +135,7 @@ check "init starship"                grep -q 'starship init'              "$HOME
 check "init zoxide"                  grep -q 'zoxide init'               "$HOME/.zshrc"
 check "NTFY_TOPIC definido"          grep -q 'NTFY_TOPIC'                "$HOME/.zshrc"
 check "sourcea claude-helpers.sh"    grep -q 'claude-helpers.sh'         "$HOME/.zshrc"
+check "función serve definida"       grep -q '^serve()'                  "$HOME/.zshrc"
 check "~/.tolkien_quotes existe"     test -f "$HOME/.tolkien_quotes"
 check "~/.motd.sh existe"            test -f "$HOME/.motd.sh"
 
