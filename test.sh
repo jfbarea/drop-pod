@@ -103,6 +103,7 @@ check_symlink "~/.hushlogin"                   "$HOME/.hushlogin"               
 check_symlink "~/.config/zsh/claude-helpers.sh" "$HOME/.config/zsh/claude-helpers.sh" "$DOTFILES/zsh/.config/zsh/claude-helpers.sh"
 check_symlink "~/.claude/settings.json"        "$HOME/.claude/settings.json"         "$DOTFILES/claudeconfig/.claude/settings.json"
 check_symlink "~/.claude/hooks/notify-stop.sh" "$HOME/.claude/hooks/notify-stop.sh"  "$DOTFILES/claudeconfig/.claude/hooks/notify-stop.sh"
+check_symlink "~/.claude/hooks/notify-attention.sh" "$HOME/.claude/hooks/notify-attention.sh" "$DOTFILES/claudeconfig/.claude/hooks/notify-attention.sh"
 check_symlink "~/.claude/agents/architect.md"  "$HOME/.claude/agents/architect.md"   "$DOTFILES/claudeconfig/.claude/agents/architect.md"
 check_symlink "~/.claude/agents/builder.md"    "$HOME/.claude/agents/builder.md"     "$DOTFILES/claudeconfig/.claude/agents/builder.md"
 check_symlink "~/.claude/agents/reviewer.md"   "$HOME/.claude/agents/reviewer.md"    "$DOTFILES/claudeconfig/.claude/agents/reviewer.md"
@@ -118,7 +119,8 @@ check_symlink "~/.claude/commands/research.md"     "$HOME/.claude/commands/resea
 
 # ── 6. Permisos ───────────────────────────────────────────────────────────────
 section "Permisos de ficheros"
-check "~/.claude/hooks/notify-stop.sh ejecutable" test -x "$HOME/.claude/hooks/notify-stop.sh"
+check "~/.claude/hooks/notify-stop.sh ejecutable"      test -x "$HOME/.claude/hooks/notify-stop.sh"
+check "~/.claude/hooks/notify-attention.sh ejecutable" test -x "$HOME/.claude/hooks/notify-attention.sh"
 
 # ── 7. Configuración de git ───────────────────────────────────────────────────
 section "Git config (~/.gitconfig)"
