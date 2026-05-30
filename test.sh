@@ -130,6 +130,8 @@ check "user.email = jfcobarea@gmail.com"  bash -c '[[ "$(git config --global use
 check "core.pager = delta"                bash -c '[[ "$(git config --global core.pager)" == "delta" ]]'
 check "init.defaultBranch = main"         bash -c '[[ "$(git config --global init.defaultBranch)" == "main" ]]'
 check "pull.rebase = true"                bash -c '[[ "$(git config --global pull.rebase)" == "true" ]]'
+check "credential helper github.com = gh"  bash -c 'git config --global --get-all "credential.https://github.com.helper" | grep -q "gh auth git-credential"'
+check "credential helper gist = gh"        bash -c 'git config --global --get-all "credential.https://gist.github.com.helper" | grep -q "gh auth git-credential"'
 
 # ── 8. Contenido de .zshrc ────────────────────────────────────────────────────
 section "Contenido de ~/.zshrc"
@@ -149,6 +151,8 @@ claude_settings="$HOME/.claude/settings.json"
 check "settings.json tiene Write(*)"   grep -q '"Write(\*)"'  "$claude_settings"
 check "settings.json tiene Edit(*)"    grep -q '"Edit(\*)"'   "$claude_settings"
 check "settings.json tiene Bash(*)"    grep -q '"Bash(\*)"'   "$claude_settings"
+check "plugin codex habilitado"        jq -e '.enabledPlugins["codex@openai-codex"] == true' "$claude_settings"
+check "marketplace openai-codex registrado" jq -e '.extraKnownMarketplaces["openai-codex"].source.repo == "openai/codex-plugin-cc"' "$claude_settings"
 check "claude-new disponible en shell" bash -c 'source "$HOME/.config/zsh/claude-helpers.sh" 2>/dev/null && declare -f claude-new &>/dev/null'
 
 # ── 10. Remote del repo de dotfiles ───────────────────────────────────────────
