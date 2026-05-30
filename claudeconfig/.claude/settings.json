@@ -64,6 +64,7 @@
     ],
     "defaultMode": "acceptEdits"
   },
+  "model": "opus",
   "hooks": {
     "Stop": [
       {
@@ -88,7 +89,17 @@
       }
     ]
   },
+  "extraKnownMarketplaces": {
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
+      }
+    }
+  },
   "theme": "dark",
   "agentPushNotifEnabled": true,
-  "model": "opus"
+  "enabledPlugins": {
+    "codex@openai-codex": true
+  }
 }
