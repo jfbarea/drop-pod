@@ -40,3 +40,5 @@ out/
 # Misc
 .cache/
 *.log
+
+**/.claude/settings.local.json
