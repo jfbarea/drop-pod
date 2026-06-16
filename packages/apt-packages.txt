@@ -27,3 +27,4 @@ xclip
 #   eza       — tarball from https://github.com/eza-community/eza/releases
 #   starship  — install script from https://starship.rs/install.sh
 #   tldr      — tealdeer binary from https://github.com/dbrgn/tealdeer/releases
+#   corepack  — npm install -g corepack (ya no viene en el paquete nodejs de apt)

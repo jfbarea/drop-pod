@@ -167,6 +167,15 @@ install_linux_extras() {
   else
     ok "tldr already installed"
   fi
+
+  # corepack — el paquete nodejs de apt ya no lo trae fiable; se instala vía npm global
+  if ! command -v corepack &>/dev/null; then
+    step "Installing corepack..."
+    sudo npm install -g corepack
+    ok "corepack installed"
+  else
+    ok "corepack already installed"
+  fi
 }
 
 # ─────────────────────────────────────────────────────────────────────────────

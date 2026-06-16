@@ -12,6 +12,7 @@ brew "starship"
 brew "jq"
 brew "stow"
 brew "node"
+brew "corepack"        # ya no viene con la fórmula node; shims de yarn/pnpm
 brew "coreutils"       # gls, gcat, … sin el prefijo g con PATH ajustado
 
 # ── Recommended ───────────────────────────────────────────────────────────────
