@@ -103,6 +103,9 @@
       }
     ]
   },
+  "enabledPlugins": {
+    "codex@openai-codex": true
+  },
   "extraKnownMarketplaces": {
     "openai-codex": {
       "source": {
@@ -112,8 +115,5 @@
     }
   },
   "theme": "dark",
-  "agentPushNotifEnabled": true,
-  "enabledPlugins": {
-    "codex@openai-codex": true
-  }
+  "agentPushNotifEnabled": true
 }
