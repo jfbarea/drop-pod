@@ -127,6 +127,8 @@ check_symlink "~/.claude/commands/ask.md"          "$HOME/.claude/commands/ask.m
 section "Permisos de ficheros"
 check "~/.claude/hooks/notify-stop.sh ejecutable"      test -x "$HOME/.claude/hooks/notify-stop.sh"
 check "~/.claude/hooks/notify-attention.sh ejecutable" test -x "$HOME/.claude/hooks/notify-attention.sh"
+check "notify-stop tiene banner local"      grep -q 'display notification' "$HOME/.claude/hooks/notify-stop.sh"
+check "notify-attention tiene banner local" grep -q 'display notification' "$HOME/.claude/hooks/notify-attention.sh"
 
 # ── 8. Configuración de git ───────────────────────────────────────────────────
 section "Git config (~/.gitconfig)"
