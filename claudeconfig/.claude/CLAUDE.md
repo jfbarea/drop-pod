@@ -17,6 +17,7 @@ Cuando generes HTML como **output principal** para el usuario (artefactos de `/r
 - **No** ofrezcas light mode como fallback ni añadas toggle.
 - Paleta recomendada: fondos muy oscuros (`#09090b`/`#18181b`), texto claro, acentos semánticos saturados (verde aprobado, rojo crítico, amarillo warning, azul info) para mantener contraste sobre fondo oscuro.
 - HTML autocontenido: CSS inline, sin dependencias externas, abre con `file://` sin red.
+- **Ubicación.** Si el HTML se genera desde un repositorio, créalo en `~/src/html/<repo-name>/`, donde `<repo-name>` es el nombre del directorio raíz del repo (el basename de `git rev-parse --show-toplevel`). Ejemplo: desde un repo `revel-app` → `~/src/html/revel-app/`. Crea el directorio si no existe. No dejes el HTML dentro del propio repo salvo que el usuario lo pida explícitamente.
 
 ## Commits y trabajo
 
