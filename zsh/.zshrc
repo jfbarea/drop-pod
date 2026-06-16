@@ -76,3 +76,4 @@ export NTFY_TOPIC=sabes-que-notificacion   # Claude Code notifications
 
 # ── Bienvenida Tolkien (toda shell interactiva fuera de tmux) ─────────────
 [[ -z "${TMUX:-}" && -f "$HOME/.motd.sh" ]] && source "$HOME/.motd.sh"
+export PATH="$HOME/.local/bin:$PATH"
