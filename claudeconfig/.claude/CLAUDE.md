@@ -23,6 +23,7 @@ Cuando generes HTML como **output principal** para el usuario (artefactos de `/r
 - En todo repositorio, sigue las reglas de commits atómicos si están descritas en el `CLAUDE.md` del proyecto.
 - No saltes hooks (`--no-verify`, `--no-gpg-sign`) salvo petición explícita.
 - Prefiere crear commits nuevos antes que `--amend` cuando algo falla.
+- **Nunca hagas `git push` en ningún repositorio.** Todo push es manual y lo hace el usuario. Hay un hook que lo bloquea; no intentes sortearlo.
 
 ## Cómo se actualiza este fichero
 

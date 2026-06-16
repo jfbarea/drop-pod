@@ -158,6 +158,8 @@ check "settings.json tiene Bash(*)"    grep -q '"Bash(\*)"'   "$claude_settings"
 check "plugin codex habilitado"        jq -e '.enabledPlugins["codex@openai-codex"] == true' "$claude_settings"
 check "marketplace openai-codex registrado" jq -e '.extraKnownMarketplaces["openai-codex"].source.repo == "openai/codex-plugin-cc"' "$claude_settings"
 check "claude-new disponible en shell" bash -c 'source "$HOME/.config/zsh/claude-helpers.sh" 2>/dev/null && declare -f claude-new &>/dev/null'
+check "deny de git push"               jq -e '.permissions.deny | index("Bash(git push:*)")' "$claude_settings"
+check "hook PreToolUse bloquea push"   jq -e '.hooks.PreToolUse[] | select(.matcher=="Bash") | .hooks[] | select(.type=="command") | .command | test("push")' "$claude_settings"
 
 # ── 11. Remote del repo de dotfiles ───────────────────────────────────────────
 section "Remote de dotfiles"

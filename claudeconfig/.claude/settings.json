@@ -29,6 +29,9 @@
       "Bash(cargo publish)",
       "Bash(cargo publish *)",
       "Bash(gem push *)",
+      "Bash(git push)",
+      "Bash(git push *)",
+      "Bash(git push:*)",
       "Bash(aws ec2 run-instances *)",
       "Bash(aws rds create-db-instance *)",
       "Bash(aws lambda create-function *)",
@@ -66,6 +69,17 @@
   },
   "model": "opus",
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd=$(jq -r '.tool_input.command // \"\"'); if printf '%s' \"$cmd\" | grep -Eq '(^|[^[:alnum:]_./-])git(([[:space:]]+-C[[:space:]]+[^[:space:]]+)|([[:space:]]+-c[[:space:]]+[^[:space:]]+)|([[:space:]]+--?[^[:space:]]+))*[[:space:]]+push([[:space:]]|$)'; then printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"git push prohibido: todos los push son manuales (politica del usuario). Hazlo tu mismo.\"}}'; fi"
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "matcher": "",
