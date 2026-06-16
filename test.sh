@@ -93,7 +93,11 @@ default_shell_is_zsh() {
 }
 check "shell por defecto es zsh" default_shell_is_zsh
 
-# ── 5. Symlinks de dotfiles ───────────────────────────────────────────────────
+# ── 5. nvm ────────────────────────────────────────────────────────────────────
+section "nvm"
+check "~/.nvm existe" test -d "$HOME/.nvm"
+
+# ── 6. Symlinks de dotfiles ──────────────────────────────────────────────────
 section "Symlinks de dotfiles"
 check_symlink "~/.gitconfig"                   "$HOME/.gitconfig"                    "$DOTFILES/git/.gitconfig"
 check_symlink "~/.gitignore_global"            "$HOME/.gitignore_global"             "$DOTFILES/git/.gitignore_global"
@@ -118,12 +122,12 @@ check_symlink "~/.claude/commands/debug.md"        "$HOME/.claude/commands/debug
 check_symlink "~/.claude/commands/audit.md"        "$HOME/.claude/commands/audit.md"        "$DOTFILES/claudeconfig/.claude/commands/audit.md"
 check_symlink "~/.claude/commands/research.md"     "$HOME/.claude/commands/research.md"     "$DOTFILES/claudeconfig/.claude/commands/research.md"
 
-# ── 6. Permisos ───────────────────────────────────────────────────────────────
+# ── 7. Permisos ───────────────────────────────────────────────────────────────
 section "Permisos de ficheros"
 check "~/.claude/hooks/notify-stop.sh ejecutable"      test -x "$HOME/.claude/hooks/notify-stop.sh"
 check "~/.claude/hooks/notify-attention.sh ejecutable" test -x "$HOME/.claude/hooks/notify-attention.sh"
 
-# ── 7. Configuración de git ───────────────────────────────────────────────────
+# ── 8. Configuración de git ───────────────────────────────────────────────────
 section "Git config (~/.gitconfig)"
 check "user.name = Fran"                  bash -c '[[ "$(git config --global user.name)" == "Fran" ]]'
 check "user.email = jfcobarea@gmail.com"  bash -c '[[ "$(git config --global user.email)" == "jfcobarea@gmail.com" ]]'
@@ -133,7 +137,7 @@ check "pull.rebase = true"                bash -c '[[ "$(git config --global pul
 check "credential helper github.com = gh"  bash -c 'git config --global --get-all "credential.https://github.com.helper" | grep -q "gh auth git-credential"'
 check "credential helper gist = gh"        bash -c 'git config --global --get-all "credential.https://gist.github.com.helper" | grep -q "gh auth git-credential"'
 
-# ── 8. Contenido de .zshrc ────────────────────────────────────────────────────
+# ── 9. Contenido de .zshrc ────────────────────────────────────────────────────
 section "Contenido de ~/.zshrc"
 check "carga oh-my-zsh"              grep -q 'source.*oh-my-zsh.sh'      "$HOME/.zshrc"
 check "~/.local/bin en PATH"         grep -q '\.local/bin'               "$HOME/.zshrc"
@@ -145,7 +149,7 @@ check "función serve definida"       grep -q '^serve()'                  "$HOME
 check "~/.tolkien_quotes existe"     test -f "$HOME/.tolkien_quotes"
 check "~/.motd.sh existe"            test -f "$HOME/.motd.sh"
 
-# ── 9. Claude Code — permisos en settings.json ────────────────────────────────
+# ── 10. Claude Code — permisos en settings.json ───────────────────────────────
 section "Claude Code settings"
 claude_settings="$HOME/.claude/settings.json"
 check "settings.json tiene Write(*)"   grep -q '"Write(\*)"'  "$claude_settings"
@@ -155,7 +159,7 @@ check "plugin codex habilitado"        jq -e '.enabledPlugins["codex@openai-code
 check "marketplace openai-codex registrado" jq -e '.extraKnownMarketplaces["openai-codex"].source.repo == "openai/codex-plugin-cc"' "$claude_settings"
 check "claude-new disponible en shell" bash -c 'source "$HOME/.config/zsh/claude-helpers.sh" 2>/dev/null && declare -f claude-new &>/dev/null'
 
-# ── 10. Remote del repo de dotfiles ───────────────────────────────────────────
+# ── 11. Remote del repo de dotfiles ───────────────────────────────────────────
 section "Remote de dotfiles"
 dotfiles_remote_is_ssh() {
   local url

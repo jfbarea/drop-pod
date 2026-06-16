@@ -223,6 +223,20 @@ install_omz() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
+# nvm
+# ─────────────────────────────────────────────────────────────────────────────
+
+install_nvm() {
+  if [[ -d "$HOME/.nvm" ]]; then
+    ok "nvm already installed ($HOME/.nvm)"
+    return 0
+  fi
+  step "Installing nvm..."
+  curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/HEAD/install.sh | bash
+  ok "nvm installed"
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Symlink helpers
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -350,6 +364,9 @@ fi
 
 step "Installing oh-my-zsh and plugins..."
 run_step "oh-my-zsh" install_omz
+
+step "Installing nvm..."
+run_step "nvm" install_nvm
 
 step "Symlinking dotfiles..."
 
