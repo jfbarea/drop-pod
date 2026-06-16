@@ -121,6 +121,7 @@ check_symlink "~/.claude/commands/milestone-run.md" "$HOME/.claude/commands/mile
 check_symlink "~/.claude/commands/debug.md"        "$HOME/.claude/commands/debug.md"        "$DOTFILES/claudeconfig/.claude/commands/debug.md"
 check_symlink "~/.claude/commands/audit.md"        "$HOME/.claude/commands/audit.md"        "$DOTFILES/claudeconfig/.claude/commands/audit.md"
 check_symlink "~/.claude/commands/research.md"     "$HOME/.claude/commands/research.md"     "$DOTFILES/claudeconfig/.claude/commands/research.md"
+check_symlink "~/.claude/commands/ask.md"          "$HOME/.claude/commands/ask.md"          "$DOTFILES/claudeconfig/.claude/commands/ask.md"
 
 # ── 7. Permisos ───────────────────────────────────────────────────────────────
 section "Permisos de ficheros"
