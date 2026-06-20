@@ -27,3 +27,5 @@ brew "tldr"            # man pages simplificadas
 brew "tree"
 brew "curl"
 brew "awscli"          # AWS CLI v2
+# Nota: alerter (notificaciones macOS con detección de clic → foco a Ghostty) no
+# tiene fórmula en Homebrew-core; lo baja install.sh de GitHub Releases a ~/.local/bin.

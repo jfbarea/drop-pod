@@ -38,6 +38,35 @@ install_packages_macos() {
   step "Running brew bundle..."
   brew bundle --file="$DOTFILES/packages/Brewfile"
   ok "Homebrew packages ready"
+
+  install_macos_extras
+}
+
+# Paquetes solo-macOS no disponibles en Homebrew — bajados de GitHub Releases
+install_macos_extras() {
+  local ver url tmp
+
+  # alerter — notificaciones nativas con detección de click (reemplaza a
+  # terminal-notifier, cuyo bundle 2.0.0 ya no se registra en macOS reciente y
+  # descarta los banners en silencio). No tiene fórmula en Homebrew-core.
+  if ! command -v alerter &>/dev/null; then
+    step "Installing alerter..."
+    ver="$(curl -fsSL https://api.github.com/repos/vjeantet/alerter/releases/latest \
+      | grep '"tag_name"' | cut -d'"' -f4)"
+    [[ -z "$ver" ]] && { err "Could not fetch alerter release URL"; return 1; }
+    url="https://github.com/vjeantet/alerter/releases/download/${ver}/alerter-${ver#v}.zip"
+    tmp="$(mktemp -d)"
+    curl -fsSL "$url" -o "$tmp/alerter.zip"
+    unzip -q "$tmp/alerter.zip" -d "$tmp"
+    mkdir -p "$HOME/.local/bin"
+    install -m 755 "$tmp/alerter" "$HOME/.local/bin/alerter"
+    # El binario viene de internet: quita la cuarentena de Gatekeeper.
+    xattr -d com.apple.quarantine "$HOME/.local/bin/alerter" 2>/dev/null || true
+    rm -rf "$tmp"
+    ok "alerter installed"
+  else
+    ok "alerter already installed"
+  fi
 }
 
 install_packages_linux() {

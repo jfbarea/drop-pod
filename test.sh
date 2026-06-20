@@ -49,6 +49,9 @@ check "fd  (fd o fdfind)"   bash -c 'command -v fd  &>/dev/null || command -v fd
 if [[ "$PLATFORM" == "linux" ]]; then
   check "xclip" command -v xclip
 fi
+if [[ "$PLATFORM" == "macos" ]]; then
+  check "alerter" command -v alerter
+fi
 
 # ── 2. Binarios de GitHub Releases ────────────────────────────────────────────
 section "Binarios de GitHub Releases"
@@ -109,6 +112,7 @@ check_symlink "~/.claude/settings.json"        "$HOME/.claude/settings.json"    
 check_symlink "~/.claude/CLAUDE.md"            "$HOME/.claude/CLAUDE.md"             "$DOTFILES/claudeconfig/.claude/CLAUDE.md"
 check_symlink "~/.claude/hooks/notify-stop.sh" "$HOME/.claude/hooks/notify-stop.sh"  "$DOTFILES/claudeconfig/.claude/hooks/notify-stop.sh"
 check_symlink "~/.claude/hooks/notify-attention.sh" "$HOME/.claude/hooks/notify-attention.sh" "$DOTFILES/claudeconfig/.claude/hooks/notify-attention.sh"
+check_symlink "~/.claude/hooks/ghostty-focus.sh" "$HOME/.claude/hooks/ghostty-focus.sh" "$DOTFILES/claudeconfig/.claude/hooks/ghostty-focus.sh"
 check_symlink "~/.claude/agents/architect.md"  "$HOME/.claude/agents/architect.md"   "$DOTFILES/claudeconfig/.claude/agents/architect.md"
 check_symlink "~/.claude/agents/builder.md"    "$HOME/.claude/agents/builder.md"     "$DOTFILES/claudeconfig/.claude/agents/builder.md"
 check_symlink "~/.claude/agents/reviewer.md"   "$HOME/.claude/agents/reviewer.md"    "$DOTFILES/claudeconfig/.claude/agents/reviewer.md"
@@ -128,8 +132,9 @@ check_symlink "~/.claude/commands/commit.md"       "$HOME/.claude/commands/commi
 section "Permisos de ficheros"
 check "~/.claude/hooks/notify-stop.sh ejecutable"      test -x "$HOME/.claude/hooks/notify-stop.sh"
 check "~/.claude/hooks/notify-attention.sh ejecutable" test -x "$HOME/.claude/hooks/notify-attention.sh"
-check "notify-stop tiene banner local"      grep -q 'display notification' "$HOME/.claude/hooks/notify-stop.sh"
-check "notify-attention tiene banner local" grep -q 'display notification' "$HOME/.claude/hooks/notify-attention.sh"
+check "~/.claude/hooks/ghostty-focus.sh ejecutable"    test -x "$HOME/.claude/hooks/ghostty-focus.sh"
+check "notify-stop usa alerter"      grep -q 'alerter' "$HOME/.claude/hooks/notify-stop.sh"
+check "notify-attention usa alerter" grep -q 'alerter' "$HOME/.claude/hooks/notify-attention.sh"
 
 # ── 8. Configuración de git ───────────────────────────────────────────────────
 section "Git config (~/.gitconfig)"
