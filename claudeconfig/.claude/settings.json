@@ -115,5 +115,6 @@
     }
   },
   "theme": "dark",
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "preferredNotifChannel": "ghostty"
 }
