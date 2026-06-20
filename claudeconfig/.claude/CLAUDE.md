@@ -21,6 +21,7 @@ Cuando generes HTML como **output principal** para el usuario (artefactos de `/r
 
 ## Commits y trabajo
 
+- **No hagas commits salvo que el usuario lo pida explícitamente** (con `/commit` o pidiéndolo con palabras). Por defecto, implementa los cambios y déjalos en el working tree sin commitear; el usuario decide cuándo y qué se commitea.
 - En todo repositorio, sigue las reglas de commits atómicos si están descritas en el `CLAUDE.md` del proyecto.
 - No saltes hooks (`--no-verify`, `--no-gpg-sign`) salvo petición explícita.
 - Prefiere crear commits nuevos antes que `--amend` cuando algo falla.
