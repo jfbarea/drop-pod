@@ -26,3 +26,4 @@ brew "htop"
 brew "tldr"            # man pages simplificadas
 brew "tree"
 brew "curl"
+brew "awscli"          # AWS CLI v2

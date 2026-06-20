@@ -176,6 +176,24 @@ install_linux_extras() {
   else
     ok "corepack already installed"
   fi
+
+  # awscli v2 — apt solo trae v1 (obsoleto); instalador oficial de AWS
+  if ! command -v aws &>/dev/null; then
+    step "Installing AWS CLI v2..."
+    case "$ARCH" in
+      x86_64)  url="https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"  ;;
+      aarch64) url="https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" ;;
+      *) err "Unsupported arch for awscli: $ARCH"; return 1 ;;
+    esac
+    tmp="$(mktemp -d)"
+    curl -fsSL "$url" -o "$tmp/awscliv2.zip"
+    unzip -q "$tmp/awscliv2.zip" -d "$tmp"
+    sudo "$tmp/aws/install"
+    rm -rf "$tmp"
+    ok "AWS CLI installed"
+  else
+    ok "AWS CLI already installed"
+  fi
 }
 
 # ─────────────────────────────────────────────────────────────────────────────

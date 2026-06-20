@@ -41,7 +41,7 @@ skip() { echo -e "  ${YEL}~${RST} $1 ($2)"; SKIP=$((SKIP + 1)); }
 
 # ── 1. Binarios básicos (apt / brew) ──────────────────────────────────────────
 section "Binarios básicos"
-for bin in git zsh tmux fzf rg jq stow node npm corepack curl wget gh zoxide htop tree; do
+for bin in git zsh tmux fzf rg jq stow node npm corepack curl wget unzip aws gh zoxide htop tree; do
   check "$bin" command -v "$bin"
 done
 check "bat (bat o batcat)"  bash -c 'command -v bat &>/dev/null || command -v batcat &>/dev/null'
