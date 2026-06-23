@@ -428,7 +428,7 @@ setup_archive_downloads() {
 setup_bibliotecario() {
   # macOS-only: servidor web local que sirve ~/src/html vía Caddy en :8080,
   # mantenido vivo por un LaunchAgent (RunAtLoad + KeepAlive). El acceso por
-  # http://bibliotecario (puerto 80) lo habilita aparte, con sudo,
+  # http://bibliotecario (puerto 80) se habilita con sudo más abajo, vía
   # macos/bibliotecario-root-setup.sh.
   local caddy_src="$DOTFILES/macos/bibliotecario.Caddyfile"
   local caddy_dst="$HOME/.config/caddy/bibliotecario.Caddyfile"
@@ -450,10 +450,13 @@ setup_bibliotecario() {
     warn "No se pudo cargar el LaunchAgent bibliotecario (¿sesión sin GUI?); se activará al iniciar sesión"
   fi
 
-  # El puerto 80 y el nombre `bibliotecario` requieren root: lo deja a mano el usuario.
-  if ! grep -qE "^[^#]*[[:space:]]bibliotecario([[:space:]]|$)" /etc/hosts 2>/dev/null; then
-    warn "Para http://bibliotecario (puerto 80) ejecuta una vez:"
-    warn "    sudo bash $DOTFILES/macos/bibliotecario-root-setup.sh"
+  # El puerto 80 y el nombre `bibliotecario` requieren root. Solo pide sudo la
+  # primera vez: si /etc/hosts ya resuelve el nombre, lo damos por configurado.
+  if grep -qE "^[^#]*[[:space:]]bibliotecario([[:space:]]|$)" /etc/hosts 2>/dev/null; then
+    ok "http://bibliotecario (puerto 80) ya configurado"
+  else
+    warn "Habilitando http://bibliotecario (puerto 80) — requiere sudo:"
+    sudo bash "$DOTFILES/macos/bibliotecario-root-setup.sh"
   fi
 }
 

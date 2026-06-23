@@ -164,6 +164,13 @@ if [[ "$PLATFORM" == "macos" ]]; then
   check "bibliotecario-serve.sh ejecutable" test -x "$DOTFILES/macos/bibliotecario-serve.sh"
   check "bibliotecario-root-setup.sh ejecutable" test -x "$DOTFILES/macos/bibliotecario-root-setup.sh"
   check "LaunchAgent bibliotecario cargado" bash -c 'launchctl list | grep -q com.fran.bibliotecario'
+  # Acceso por http://bibliotecario (puerto 80): install.sh lo habilita con sudo.
+  check "bibliotecario resuelve en /etc/hosts" \
+    bash -c 'grep -qE "^[^#]*[[:space:]]bibliotecario([[:space:]]|$)" /etc/hosts'
+  check "ancla pf bibliotecario instalada" test -f /etc/pf.anchors/bibliotecario
+  check "ruleset pf bibliotecario instalado" test -f /etc/pf-bibliotecario.conf
+  check "LaunchDaemon pf bibliotecario instalado" \
+    test -f /Library/LaunchDaemons/com.fran.bibliotecario-pf.plist
 fi
 
 # ── 8. Configuración de git ───────────────────────────────────────────────────
