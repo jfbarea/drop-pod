@@ -425,6 +425,38 @@ setup_archive_downloads() {
   fi
 }
 
+setup_bibliotecario() {
+  # macOS-only: servidor web local que sirve ~/src/html vía Caddy en :8080,
+  # mantenido vivo por un LaunchAgent (RunAtLoad + KeepAlive). El acceso por
+  # http://bibliotecario (puerto 80) lo habilita aparte, con sudo,
+  # macos/bibliotecario-root-setup.sh.
+  local caddy_src="$DOTFILES/macos/bibliotecario.Caddyfile"
+  local caddy_dst="$HOME/.config/caddy/bibliotecario.Caddyfile"
+  local script_src="$DOTFILES/macos/bibliotecario-serve.sh"
+  local script_dst="$HOME/.local/bin/bibliotecario-serve.sh"
+  local plist_src="$DOTFILES/macos/com.fran.bibliotecario.plist"
+  local plist_dst="$HOME/Library/LaunchAgents/com.fran.bibliotecario.plist"
+
+  chmod +x "$script_src"
+  safe_link "$caddy_src"  "$caddy_dst"
+  safe_link "$script_src" "$script_dst"
+  safe_link "$plist_src"  "$plist_dst"
+
+  # Recargar el LaunchAgent de forma idempotente (unload + load -w).
+  launchctl unload "$plist_dst" 2>/dev/null || true
+  if launchctl load -w "$plist_dst" 2>/dev/null; then
+    ok "LaunchAgent bibliotecario cargado (Caddy sirviendo ~/src/html en :8080)"
+  else
+    warn "No se pudo cargar el LaunchAgent bibliotecario (¿sesión sin GUI?); se activará al iniciar sesión"
+  fi
+
+  # El puerto 80 y el nombre `bibliotecario` requieren root: lo deja a mano el usuario.
+  if ! grep -qE "^[^#]*[[:space:]]bibliotecario([[:space:]]|$)" /etc/hosts 2>/dev/null; then
+    warn "Para http://bibliotecario (puerto 80) ejecuta una vez:"
+    warn "    sudo bash $DOTFILES/macos/bibliotecario-root-setup.sh"
+  fi
+}
+
 copy_claude_template() {
   if [[ -d "$HOME/src" && ! -f "$HOME/src/CLAUDE.md" ]]; then
     cp "$DOTFILES/templates/CLAUDE.md" "$HOME/src/CLAUDE.md"
@@ -473,6 +505,11 @@ fi
 # macOS: LaunchAgent que archiva ~/Downloads a diario
 if [[ "$PLATFORM" == "macos" ]]; then
   run_step "archive-downloads" setup_archive_downloads
+fi
+
+# macOS: servidor web local "bibliotecario" (Caddy sirviendo ~/src/html en :8080)
+if [[ "$PLATFORM" == "macos" ]]; then
+  run_step "bibliotecario" setup_bibliotecario
 fi
 
 # Switch dotfiles remote from HTTPS to SSH if needed

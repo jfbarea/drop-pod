@@ -150,6 +150,22 @@ if [[ "$PLATFORM" == "macos" ]]; then
   check "LaunchAgent cargado" bash -c 'launchctl list | grep -q com.fran.archive-downloads'
 fi
 
+# ── 7c. macOS: servidor web bibliotecario ─────────────────────────────────────
+if [[ "$PLATFORM" == "macos" ]]; then
+  section "macOS — bibliotecario"
+  check "caddy instalado" command -v caddy
+  check_symlink "~/.config/caddy/bibliotecario.Caddyfile" \
+    "$HOME/.config/caddy/bibliotecario.Caddyfile" "$DOTFILES/macos/bibliotecario.Caddyfile"
+  check_symlink "~/.local/bin/bibliotecario-serve.sh" \
+    "$HOME/.local/bin/bibliotecario-serve.sh" "$DOTFILES/macos/bibliotecario-serve.sh"
+  check_symlink "~/Library/LaunchAgents/com.fran.bibliotecario.plist" \
+    "$HOME/Library/LaunchAgents/com.fran.bibliotecario.plist" \
+    "$DOTFILES/macos/com.fran.bibliotecario.plist"
+  check "bibliotecario-serve.sh ejecutable" test -x "$DOTFILES/macos/bibliotecario-serve.sh"
+  check "bibliotecario-root-setup.sh ejecutable" test -x "$DOTFILES/macos/bibliotecario-root-setup.sh"
+  check "LaunchAgent bibliotecario cargado" bash -c 'launchctl list | grep -q com.fran.bibliotecario'
+fi
+
 # ── 8. Configuración de git ───────────────────────────────────────────────────
 section "Git config (~/.gitconfig)"
 check "user.name = Fran"                  bash -c '[[ "$(git config --global user.name)" == "Fran" ]]'

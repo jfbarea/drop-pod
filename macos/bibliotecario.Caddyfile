@@ -1,0 +1,21 @@
+# Servidor web local "bibliotecario": sirve ~/src/html con listado de
+# directorios navegable. Lo arranca el LaunchAgent com.fran.bibliotecario a
+# través de bibliotecario-serve.sh.
+#
+# Escucha en :8080 sin matcher de host, así que responde a cualquier Host
+# (localhost, bibliotecario, …). La resolución del nombre `bibliotecario` y la
+# redirección del puerto 80 -> 8080 las hace bibliotecario-root-setup.sh.
+#
+# {$HOME} lo sustituye el adaptador Caddyfile con la variable de entorno HOME
+# del proceso (el LaunchAgent la hereda). launchd no expande $HOME en rutas.
+
+{
+	admin off
+	auto_https off
+}
+
+:8080 {
+	root * {$HOME}/src/html
+	file_server browse
+	encode gzip
+}
