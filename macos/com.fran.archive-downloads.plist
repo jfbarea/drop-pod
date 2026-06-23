@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.fran.archive-downloads</string>
+
+  <!-- launchd no expande $HOME en rutas; lo resolvemos vía bash en runtime. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <string>exec "$HOME/.local/bin/archive-downloads.sh"</string>
+  </array>
+
+  <!-- Todos los días a las 03:00. launchd recupera la ejecución al despertar
+       si el Mac estaba dormido a esa hora. -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>3</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+
+  <key>StandardErrorPath</key>
+  <string>/tmp/com.fran.archive-downloads.err</string>
+</dict>
+</plist>

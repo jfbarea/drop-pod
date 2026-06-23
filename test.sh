@@ -136,6 +136,20 @@ check "~/.claude/hooks/ghostty-focus.sh ejecutable"    test -x "$HOME/.claude/ho
 check "notify-stop usa alerter"      grep -q 'alerter' "$HOME/.claude/hooks/notify-stop.sh"
 check "notify-attention usa alerter" grep -q 'alerter' "$HOME/.claude/hooks/notify-attention.sh"
 
+# ── 7b. macOS: LaunchAgent archive-downloads ──────────────────────────────────
+if [[ "$PLATFORM" == "macos" ]]; then
+  section "macOS — archive-downloads"
+  check_symlink "~/.local/bin/archive-downloads.sh" \
+    "$HOME/.local/bin/archive-downloads.sh" "$DOTFILES/macos/archive-downloads.sh"
+  check_symlink "~/Library/LaunchAgents/com.fran.archive-downloads.plist" \
+    "$HOME/Library/LaunchAgents/com.fran.archive-downloads.plist" \
+    "$DOTFILES/macos/com.fran.archive-downloads.plist"
+  check "archive-downloads.sh ejecutable" test -x "$DOTFILES/macos/archive-downloads.sh"
+  check "script excluye el README de política" \
+    grep -q "Downloads Policy.txt" "$DOTFILES/macos/archive-downloads.sh"
+  check "LaunchAgent cargado" bash -c 'launchctl list | grep -q com.fran.archive-downloads'
+fi
+
 # ── 8. Configuración de git ───────────────────────────────────────────────────
 section "Git config (~/.gitconfig)"
 check "user.name = Fran"                  bash -c '[[ "$(git config --global user.name)" == "Fran" ]]'

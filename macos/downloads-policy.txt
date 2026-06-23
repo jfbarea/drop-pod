@@ -1,0 +1,55 @@
+POLÍTICA DE LA CARPETA DOWNLOADS
+================================
+
+Esta carpeta se limpia automáticamente. Un proceso programado mueve lo que
+lleva tiempo aquí a una subcarpeta "archive", para que Downloads no se sature
+pero sin borrar nada nunca.
+
+
+QUÉ HACE
+--------
+- Cada día a las 03:00 se revisa el nivel superior de ~/Downloads.
+- Todo lo que tenga MÁS DE 7 DÍAS de antigüedad (según la fecha de
+  modificación) se MUEVE a ~/Downloads/archive/.
+- Aplica tanto a ficheros sueltos como a carpetas.
+- Nunca se borra nada: solo se mueve. Lo que necesites lo recuperas de
+  ~/Downloads/archive/.
+
+
+QUÉ NO SE TOCA (exclusiones)
+----------------------------
+- La propia carpeta "archive".
+- Este fichero, "Downloads Policy.txt".
+- Basura del sistema: ".DS_Store" y ".localized".
+- Cualquier cosa con menos de 7 días: se queda en Downloads.
+
+Si quieres que algo NO se archive, basta con abrirlo/tocarlo de vez en cuando
+(eso actualiza su fecha de modificación) o moverlo fuera de Downloads.
+
+
+CUÁNDO SE EJECUTA
+-----------------
+- Diariamente a las 03:00 mediante un LaunchAgent de macOS
+  (com.fran.archive-downloads).
+- Si el portátil estaba suspendido a esa hora, la tarea se ejecuta al
+  despertarlo. Varios días perdidos se agrupan en una sola ejecución.
+- Si el Mac estaba completamente apagado, se ejecutará en el siguiente
+  arranque/despertar (no de forma tan garantizada como tras suspensión).
+
+
+DETALLES
+--------
+- Si al mover algo ya existe otro con el mismo nombre en archive/, no se
+  sobrescribe: se le añade un sufijo ".archived-<segundos>".
+- Registro de cada ejecución: ~/.local/state/archive-downloads.log
+- Para ver qué se movería SIN mover nada:
+      ~/.local/bin/archive-downloads.sh --dry-run
+- Para ejecutarlo a mano ahora:
+      ~/.local/bin/archive-downloads.sh
+
+
+GESTIÓN
+-------
+El script y el LaunchAgent están versionados en el repo de dotfiles
+(carpeta macos/). Para cambiar la antigüedad, la hora o las exclusiones,
+edita macos/archive-downloads.sh o el .plist y reinstala.

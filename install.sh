@@ -398,6 +398,33 @@ clear_system_motd() {
   fi
 }
 
+setup_archive_downloads() {
+  # macOS-only: archiva ~/Downloads a diario (script + LaunchAgent a las 03:00).
+  local script_src="$DOTFILES/macos/archive-downloads.sh"
+  local script_dst="$HOME/.local/bin/archive-downloads.sh"
+  local plist_src="$DOTFILES/macos/com.fran.archive-downloads.plist"
+  local plist_dst="$HOME/Library/LaunchAgents/com.fran.archive-downloads.plist"
+
+  chmod +x "$script_src"
+  safe_link "$script_src" "$script_dst"
+  safe_link "$plist_src" "$plist_dst"
+
+  # README de la política, visible en ~/Downloads (el script lo excluye del
+  # barrido). Se copia solo si no existe, para no pisar ediciones manuales.
+  if [[ -d "$HOME/Downloads" && ! -f "$HOME/Downloads/Downloads Policy.txt" ]]; then
+    cp "$DOTFILES/macos/downloads-policy.txt" "$HOME/Downloads/Downloads Policy.txt"
+    ok "Política copiada a ~/Downloads/Downloads Policy.txt"
+  fi
+
+  # Recargar el LaunchAgent de forma idempotente (unload + load -w).
+  launchctl unload "$plist_dst" 2>/dev/null || true
+  if launchctl load -w "$plist_dst" 2>/dev/null; then
+    ok "LaunchAgent archive-downloads cargado (diario 03:00)"
+  else
+    warn "No se pudo cargar el LaunchAgent (¿sesión sin GUI?); se activará al iniciar sesión"
+  fi
+}
+
 copy_claude_template() {
   if [[ -d "$HOME/src" && ! -f "$HOME/src/CLAUDE.md" ]]; then
     cp "$DOTFILES/templates/CLAUDE.md" "$HOME/src/CLAUDE.md"
@@ -441,6 +468,11 @@ run_step "stow:claude" setup_claude
 # Clear Debian's default MOTD (replaced by our Tolkien welcome)
 if [[ "$PLATFORM" == "linux" ]]; then
   run_step "motd" clear_system_motd
+fi
+
+# macOS: LaunchAgent que archiva ~/Downloads a diario
+if [[ "$PLATFORM" == "macos" ]]; then
+  run_step "archive-downloads" setup_archive_downloads
 fi
 
 # Switch dotfiles remote from HTTPS to SSH if needed
