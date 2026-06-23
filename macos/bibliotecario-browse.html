@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<!--
+  Plantilla grimdark para el listado de directorios de Caddy (file_server browse).
+  Es un Go template: Caddy la rellena con .Path, .Breadcrumbs, .Items, etc.
+  La sirve el servidor "bibliotecario"; se enlaza desde install.sh a
+  ~/.config/caddy/bibliotecario-browse.html y se referencia en el Caddyfile.
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BIBLIOTECARIO · {{.Path}}</title>
+<style>
+  /* Dark mode hard-coded: paleta grimdark fija, sin prefers-color-scheme. */
+  :root {
+    --void:    #0a0908;
+    --crypt:   #14110f;
+    --slab:    #1a1614;
+    --iron:    #2a2320;
+    --iron-lit:#3a302b;
+    --bone:    #c9bfb1;
+    --ash:     #8a8077;
+    --dust:    #5f574e;
+    --blood:   #8b1a1a;
+    --ember:   #c0392b;
+    --gild:    #9a7b2e;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    background:
+      radial-gradient(120% 90% at 50% -10%, #1c1714 0%, var(--void) 55%, #050403 100%);
+    background-attachment: fixed;
+    color: var(--bone);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    font-size: 16px;
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: 2.5rem clamp(1rem, 5vw, 4rem) 4rem;
+  }
+
+  /* vignette superpuesta para oscurecer los bordes */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 18vw 4vw rgba(0,0,0,.7);
+    z-index: 0;
+  }
+
+  .wrap { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; }
+
+  header { text-align: center; margin-bottom: 2.25rem; }
+
+  h1 {
+    font-size: clamp(2rem, 7vw, 3.4rem);
+    font-weight: 700;
+    letter-spacing: .42em;
+    text-indent: .42em; /* compensa el letter-spacing del último glifo */
+    margin: 0;
+    text-transform: uppercase;
+    color: var(--bone);
+    text-shadow:
+      0 0 1px #000,
+      0 0 14px rgba(139,26,26,.55),
+      0 0 30px rgba(139,26,26,.25);
+  }
+
+  .sigil {
+    display: block;
+    margin: .35rem auto 0;
+    color: var(--ember);
+    font-size: 1.4rem;
+    letter-spacing: .8em;
+    text-indent: .8em;
+    opacity: .85;
+  }
+
+  /* migas de pan */
+  nav.crumbs {
+    margin: 1.4rem 0 0;
+    font-size: .95rem;
+    color: var(--dust);
+    word-break: break-word;
+  }
+  nav.crumbs a {
+    color: var(--ash);
+    text-decoration: none;
+    border-bottom: 1px dotted transparent;
+  }
+  nav.crumbs a:hover { color: var(--ember); border-bottom-color: var(--blood); }
+  nav.crumbs .sep { color: var(--iron-lit); padding: 0 .5rem; }
+
+  /* panel del listado */
+  .codex {
+    margin-top: 2rem;
+    background: linear-gradient(180deg, var(--crypt), #0d0b0a);
+    border: 1px solid var(--iron);
+    border-radius: 4px;
+    box-shadow: 0 1px 0 rgba(255,255,255,.02) inset, 0 18px 50px rgba(0,0,0,.6);
+    overflow: hidden;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  thead th {
+    text-align: left;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--dust);
+    padding: .85rem 1.25rem;
+    border-bottom: 1px solid var(--iron);
+    background: var(--slab);
+  }
+  thead th.num { text-align: right; }
+  thead th a { color: inherit; text-decoration: none; }
+  thead th a:hover { color: var(--ember); }
+  thead th .arr { color: var(--blood); }
+
+  tbody td {
+    padding: .7rem 1.25rem;
+    border-bottom: 1px solid rgba(42,35,32,.6);
+    color: var(--ash);
+    font-size: .92rem;
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr { transition: background .12s ease; }
+  tbody tr:hover { background: rgba(139,26,26,.10); }
+  tbody tr:hover td { color: var(--bone); }
+
+  td.name { width: 100%; white-space: normal; }
+  td.name a {
+    color: var(--bone);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+  tr:hover td.name a { border-bottom-color: var(--blood); }
+
+  .glyph {
+    display: inline-block;
+    width: 1.4em;
+    color: var(--gild);
+    font-size: 1rem;
+  }
+  tr.dir td.name a { color: #d8cdbb; font-weight: 600; }
+  tr.dir .glyph { color: var(--ember); }
+  tr.up .glyph { color: var(--dust); }
+  tr.up td.name a { color: var(--ash); font-style: italic; }
+
+  td.size, td.date { text-align: right; color: var(--dust); font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .82rem; }
+
+  .empty {
+    padding: 3rem 1.25rem;
+    text-align: center;
+    color: var(--dust);
+    font-style: italic;
+  }
+
+  footer {
+    margin-top: 1.6rem;
+    text-align: center;
+    color: var(--dust);
+    font-size: .82rem;
+    letter-spacing: .12em;
+  }
+  footer .tally { color: var(--ash); }
+  footer .motto { display: block; margin-top: .5rem; color: var(--iron-lit); font-style: italic; letter-spacing: .2em; text-transform: uppercase; }
+
+  @media (max-width: 600px) {
+    td.date, thead th.date { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Bibliotecario</h1>
+    <span class="sigil">&#8224; &#9876; &#8224;</span>
+    <nav class="crumbs">
+      {{- range $i, $crumb := .Breadcrumbs}}
+        {{- if $i}}<span class="sep">/</span>{{end}}
+        <a href="{{html $crumb.Link}}">{{if $crumb.Text}}{{$crumb.Text}}{{else}}&#9751;{{end}}</a>
+      {{- end}}
+    </nav>
+  </header>
+
+  <div class="codex">
+    {{- if or .Items .CanGoUp}}
+    <table>
+      <thead>
+        <tr>
+          {{- $nameOrder := "asc"}}{{if and (or (eq .Sort "name") (eq .Sort "namedirfirst")) (eq .Order "asc")}}{{$nameOrder = "desc"}}{{end}}
+          {{- $sizeOrder := "asc"}}{{if and (eq .Sort "size") (eq .Order "asc")}}{{$sizeOrder = "desc"}}{{end}}
+          {{- $timeOrder := "asc"}}{{if and (eq .Sort "time") (eq .Order "asc")}}{{$timeOrder = "desc"}}{{end}}
+          <th><a href="?sort=namedirfirst&amp;order={{$nameOrder}}">Reliquia{{if or (eq .Sort "name") (eq .Sort "namedirfirst")}} <span class="arr">{{if eq .Order "asc"}}&#9650;{{else}}&#9660;{{end}}</span>{{end}}</a></th>
+          <th class="num"><a href="?sort=size&amp;order={{$sizeOrder}}">Peso{{if eq .Sort "size"}} <span class="arr">{{if eq .Order "asc"}}&#9650;{{else}}&#9660;{{end}}</span>{{end}}</a></th>
+          <th class="num date"><a href="?sort=time&amp;order={{$timeOrder}}">Inscrito{{if eq .Sort "time"}} <span class="arr">{{if eq .Order "asc"}}&#9650;{{else}}&#9660;{{end}}</span>{{end}}</a></th>
+        </tr>
+      </thead>
+      <tbody>
+        {{- if .CanGoUp}}
+        <tr class="up">
+          <td class="name"><span class="glyph">&#8689;</span><a href="..">..</a></td>
+          <td class="size">&#8212;</td>
+          <td class="date">&#8212;</td>
+        </tr>
+        {{- end}}
+        {{- range .Items}}
+        <tr class="{{if .IsDir}}dir{{else}}file{{end}}">
+          <td class="name">
+            <span class="glyph">{{if .IsDir}}&#9656;{{else}}&#8226;{{end}}</span><a href="{{html .URL}}">{{.Name}}</a>
+          </td>
+          <td class="size">{{if .IsDir}}&#8212;{{else}}{{.HumanSize}}{{end}}</td>
+          <td class="date">{{.HumanModTime "02/01/2006 15:04"}}</td>
+        </tr>
+        {{- end}}
+      </tbody>
+    </table>
+    {{- else}}
+    <div class="empty">La cripta est&aacute; vac&iacute;a.</div>
+    {{- end}}
+  </div>
+
+  <footer>
+    <span class="tally">{{.NumDirs}} c&aacute;maras &middot; {{.NumFiles}} reliquias</span>
+    <span class="motto">Nada se pierde &middot; todo queda registrado</span>
+  </footer>
+</div>
+</body>
+</html>

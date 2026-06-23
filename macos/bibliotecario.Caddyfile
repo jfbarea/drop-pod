@@ -16,6 +16,8 @@
 
 :8080 {
 	root * {$HOME}/src/html
-	file_server browse
+	file_server {
+		browse {$HOME}/.config/caddy/bibliotecario-browse.html
+	}
 	encode gzip
 }

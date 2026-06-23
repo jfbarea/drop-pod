@@ -432,6 +432,8 @@ setup_bibliotecario() {
   # macos/bibliotecario-root-setup.sh.
   local caddy_src="$DOTFILES/macos/bibliotecario.Caddyfile"
   local caddy_dst="$HOME/.config/caddy/bibliotecario.Caddyfile"
+  local browse_src="$DOTFILES/macos/bibliotecario-browse.html"
+  local browse_dst="$HOME/.config/caddy/bibliotecario-browse.html"
   local script_src="$DOTFILES/macos/bibliotecario-serve.sh"
   local script_dst="$HOME/.local/bin/bibliotecario-serve.sh"
   local plist_src="$DOTFILES/macos/com.fran.bibliotecario.plist"
@@ -439,6 +441,7 @@ setup_bibliotecario() {
 
   chmod +x "$script_src"
   safe_link "$caddy_src"  "$caddy_dst"
+  safe_link "$browse_src" "$browse_dst"
   safe_link "$script_src" "$script_dst"
   safe_link "$plist_src"  "$plist_dst"
 

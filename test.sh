@@ -156,6 +156,8 @@ if [[ "$PLATFORM" == "macos" ]]; then
   check "caddy instalado" command -v caddy
   check_symlink "~/.config/caddy/bibliotecario.Caddyfile" \
     "$HOME/.config/caddy/bibliotecario.Caddyfile" "$DOTFILES/macos/bibliotecario.Caddyfile"
+  check_symlink "~/.config/caddy/bibliotecario-browse.html" \
+    "$HOME/.config/caddy/bibliotecario-browse.html" "$DOTFILES/macos/bibliotecario-browse.html"
   check_symlink "~/.local/bin/bibliotecario-serve.sh" \
     "$HOME/.local/bin/bibliotecario-serve.sh" "$DOTFILES/macos/bibliotecario-serve.sh"
   check_symlink "~/Library/LaunchAgents/com.fran.bibliotecario.plist" \
