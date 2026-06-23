@@ -15,8 +15,25 @@ Cuando generes HTML como **output principal** para el usuario (artefactos de `/r
 - **Dark mode hard-coded.** Paleta dark fija en `:root` desde el principio.
 - **No** uses `@media (prefers-color-scheme: dark)` — eso depende del SO; el usuario quiere dark siempre.
 - **No** ofrezcas light mode como fallback ni añadas toggle.
-- Paleta recomendada: fondos muy oscuros (`#09090b`/`#18181b`), texto claro, acentos semánticos saturados (verde aprobado, rojo crítico, amarillo warning, azul info) para mantener contraste sobre fondo oscuro.
-- HTML autocontenido: CSS inline, sin dependencias externas, abre con `file://` sin red.
+- **Estilo del bibliotecario (estilo de casa).** Todo HTML que generes adopta la identidad visual del visor bibliotecario: paleta "papel oscuro" cálida con un único acento verde apagado y tipografía serif editorial. Copia estos tokens en `:root`:
+  ```css
+  :root{
+    --paper:#191815;      /* fondo base */
+    --surface:#211F1B;    /* paneles, cabeceras */
+    --surface-2:#262420;  /* inputs, hovers */
+    --ink:#ECEAE2;        /* texto principal */
+    --muted:#928D82;      /* texto secundario */
+    --faint:#5C584F;      /* texto terciario, separadores suaves */
+    --line:#332F29;       /* bordes */
+    --accent:#5FA892;     /* acento (verde apagado) */
+    --accent-soft:#5fa8921f;
+    --shadow:0 1px 2px rgba(0,0,0,.2),0 12px 28px rgba(0,0,0,.28);
+    --radius:14px;
+  }
+  ```
+- **Tipografía del bibliotecario.** Titulares con `"Fraunces",serif`; texto corrido con `"Newsreader",Georgia,serif`; metadatos, código y etiquetas con `"JetBrains Mono",monospace`. Carga las fuentes con el `<link>` de Google Fonts (`Fraunces`, `Newsreader`, `JetBrains Mono`) **con fallback de sistema** en cada `font-family`, para que offline degrade a serif/monospace sin romperse.
+- Para **estados semánticos** (crítico, warning, info en reviews/audits) añade rojo/amarillo/azul saturados que contrasten sobre el `--paper`, pero deja el verde `--accent` como color de marca y mantén el resto de la UI en los tokens de arriba.
+- HTML autocontenido: CSS inline, sin dependencias externas más allá del `<link>` de fuentes (que degrada offline), abre con `file://`.
 - **Ubicación.** Si el HTML se genera desde un repositorio, créalo en `~/src/html/<repo-name>/`, donde `<repo-name>` es el nombre del directorio raíz del repo (el basename de `git rev-parse --show-toplevel`). Ejemplo: desde un repo `revel-app` → `~/src/html/revel-app/`. Crea el directorio si no existe. No dejes el HTML dentro del propio repo salvo que el usuario lo pida explícitamente.
 - **Compatible con el bibliotecario.** Todo HTML que generes en `~/src/html/` lo sirve y cataloga el servidor local "bibliotecario" (Caddy), que lista el árbol y **previsualiza los `.html` dentro de un iframe** en su panel lector. Para que encaje:
   - Extensión `.html` y nombre de fichero descriptivo en kebab-case (el catálogo filtra por extensión y abre inline solo los `.html`).
