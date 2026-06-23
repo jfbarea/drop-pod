@@ -233,7 +233,7 @@ const isHtml = it => !it.isDir && /\.html?$/i.test(it.name);
 async function loadChildren(node){
   if (node.children !== null) return node.children;
   try {
-    const r = await fetch(encodeURI(node.abs), {headers:{Accept:'application/json'}});
+    const r = await fetch(encodeURI(node.abs), {headers:{Accept:'application/json'}, cache:'no-cache'});
     const data = r.ok ? await r.json() : [];
     node.children = (data || []).map(d => ({
       name: d.name,
@@ -241,6 +241,7 @@ async function loadChildren(node){
       isDir: d.is_dir,
       bytes: d.size,
       mod:   fmt(d.mod_time),
+      mtime: d.mod_time,              // crudo, para cache-bust del iframe
       children: null,
     })).sort((a,b) => (b.isDir - a.isDir) || a.name.localeCompare(b.name, 'es'));
   } catch (e) {
@@ -358,7 +359,9 @@ function reveal(node){
 
 function openDoc(node){
   activeAbs = node.abs;
-  const src = encodeURI(node.abs);
+  // Cache-bust por mtime: la URL cambia solo cuando cambia el fichero, así el
+  // iframe nunca reusa una copia vieja cacheada (un ?v fijo no bastaría).
+  const src = encodeURI(node.abs) + '?v=' + encodeURIComponent(node.mtime || '');
   const ext = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3h7v7"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>';
   const back = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>';
   if (!isHtml(node)) window.open(src, '_blank', 'noopener');

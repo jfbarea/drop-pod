@@ -16,6 +16,9 @@
 
 :8080 {
 	root * {$HOME}/src/html
+	# Artefactos en edición constante: revalidar siempre (304 si no cambió, 200 si
+	# sí) para que el panel lector (iframe) no muestre versiones cacheadas viejas.
+	header Cache-Control "no-cache"
 	file_server {
 		browse {$HOME}/.config/caddy/bibliotecario-browse.html
 	}
