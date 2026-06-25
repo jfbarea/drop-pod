@@ -150,29 +150,29 @@ if [[ "$PLATFORM" == "macos" ]]; then
   check "LaunchAgent cargado" bash -c 'launchctl list | grep -q com.fran.archive-downloads'
 fi
 
-# ── 7c. macOS: servidor web bibliotecario ─────────────────────────────────────
+# ── 7c. macOS: servidor web scriptorium ─────────────────────────────────────
 if [[ "$PLATFORM" == "macos" ]]; then
-  section "macOS — bibliotecario"
+  section "macOS — scriptorium"
   check "caddy instalado" command -v caddy
-  check_symlink "~/.config/caddy/bibliotecario.Caddyfile" \
-    "$HOME/.config/caddy/bibliotecario.Caddyfile" "$DOTFILES/macos/bibliotecario.Caddyfile"
-  check_symlink "~/.config/caddy/bibliotecario-browse.html" \
-    "$HOME/.config/caddy/bibliotecario-browse.html" "$DOTFILES/macos/bibliotecario-browse.html"
-  check_symlink "~/.local/bin/bibliotecario-serve.sh" \
-    "$HOME/.local/bin/bibliotecario-serve.sh" "$DOTFILES/macos/bibliotecario-serve.sh"
-  check_symlink "~/Library/LaunchAgents/com.fran.bibliotecario.plist" \
-    "$HOME/Library/LaunchAgents/com.fran.bibliotecario.plist" \
-    "$DOTFILES/macos/com.fran.bibliotecario.plist"
-  check "bibliotecario-serve.sh ejecutable" test -x "$DOTFILES/macos/bibliotecario-serve.sh"
-  check "bibliotecario-root-setup.sh ejecutable" test -x "$DOTFILES/macos/bibliotecario-root-setup.sh"
-  check "LaunchAgent bibliotecario cargado" bash -c 'launchctl list | grep -q com.fran.bibliotecario'
-  # Acceso por http://bibliotecario (puerto 80): install.sh lo habilita con sudo.
-  check "bibliotecario resuelve en /etc/hosts" \
-    bash -c 'grep -qE "^[^#]*[[:space:]]bibliotecario([[:space:]]|$)" /etc/hosts'
-  check "ancla pf bibliotecario instalada" test -f /etc/pf.anchors/bibliotecario
-  check "ruleset pf bibliotecario instalado" test -f /etc/pf-bibliotecario.conf
-  check "LaunchDaemon pf bibliotecario instalado" \
-    test -f /Library/LaunchDaemons/com.fran.bibliotecario-pf.plist
+  check_symlink "~/.config/caddy/scriptorium.Caddyfile" \
+    "$HOME/.config/caddy/scriptorium.Caddyfile" "$DOTFILES/macos/scriptorium.Caddyfile"
+  check_symlink "~/.config/caddy/scriptorium-browse.html" \
+    "$HOME/.config/caddy/scriptorium-browse.html" "$DOTFILES/macos/scriptorium-browse.html"
+  check_symlink "~/.local/bin/scriptorium-serve.sh" \
+    "$HOME/.local/bin/scriptorium-serve.sh" "$DOTFILES/macos/scriptorium-serve.sh"
+  check_symlink "~/Library/LaunchAgents/com.fran.scriptorium.plist" \
+    "$HOME/Library/LaunchAgents/com.fran.scriptorium.plist" \
+    "$DOTFILES/macos/com.fran.scriptorium.plist"
+  check "scriptorium-serve.sh ejecutable" test -x "$DOTFILES/macos/scriptorium-serve.sh"
+  check "scriptorium-root-setup.sh ejecutable" test -x "$DOTFILES/macos/scriptorium-root-setup.sh"
+  check "LaunchAgent scriptorium cargado" bash -c 'launchctl list | grep -q com.fran.scriptorium'
+  # Acceso por http://scriptorium (puerto 80): install.sh lo habilita con sudo.
+  check "scriptorium resuelve en /etc/hosts" \
+    bash -c 'grep -qE "^[^#]*[[:space:]]scriptorium([[:space:]]|$)" /etc/hosts'
+  check "ancla pf scriptorium instalada" test -f /etc/pf.anchors/scriptorium
+  check "ruleset pf scriptorium instalado" test -f /etc/pf-scriptorium.conf
+  check "LaunchDaemon pf scriptorium instalado" \
+    test -f /Library/LaunchDaemons/com.fran.scriptorium-pf.plist
 fi
 
 # ── 8. Configuración de git ───────────────────────────────────────────────────

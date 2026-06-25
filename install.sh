@@ -425,19 +425,19 @@ setup_archive_downloads() {
   fi
 }
 
-setup_bibliotecario() {
+setup_scriptorium() {
   # macOS-only: servidor web local que sirve ~/src/html vía Caddy en :8080,
   # mantenido vivo por un LaunchAgent (RunAtLoad + KeepAlive). El acceso por
-  # http://bibliotecario (puerto 80) se habilita con sudo más abajo, vía
-  # macos/bibliotecario-root-setup.sh.
-  local caddy_src="$DOTFILES/macos/bibliotecario.Caddyfile"
-  local caddy_dst="$HOME/.config/caddy/bibliotecario.Caddyfile"
-  local browse_src="$DOTFILES/macos/bibliotecario-browse.html"
-  local browse_dst="$HOME/.config/caddy/bibliotecario-browse.html"
-  local script_src="$DOTFILES/macos/bibliotecario-serve.sh"
-  local script_dst="$HOME/.local/bin/bibliotecario-serve.sh"
-  local plist_src="$DOTFILES/macos/com.fran.bibliotecario.plist"
-  local plist_dst="$HOME/Library/LaunchAgents/com.fran.bibliotecario.plist"
+  # http://scriptorium (puerto 80) se habilita con sudo más abajo, vía
+  # macos/scriptorium-root-setup.sh.
+  local caddy_src="$DOTFILES/macos/scriptorium.Caddyfile"
+  local caddy_dst="$HOME/.config/caddy/scriptorium.Caddyfile"
+  local browse_src="$DOTFILES/macos/scriptorium-browse.html"
+  local browse_dst="$HOME/.config/caddy/scriptorium-browse.html"
+  local script_src="$DOTFILES/macos/scriptorium-serve.sh"
+  local script_dst="$HOME/.local/bin/scriptorium-serve.sh"
+  local plist_src="$DOTFILES/macos/com.fran.scriptorium.plist"
+  local plist_dst="$HOME/Library/LaunchAgents/com.fran.scriptorium.plist"
 
   chmod +x "$script_src"
   safe_link "$caddy_src"  "$caddy_dst"
@@ -448,18 +448,18 @@ setup_bibliotecario() {
   # Recargar el LaunchAgent de forma idempotente (unload + load -w).
   launchctl unload "$plist_dst" 2>/dev/null || true
   if launchctl load -w "$plist_dst" 2>/dev/null; then
-    ok "LaunchAgent bibliotecario cargado (Caddy sirviendo ~/src/html en :8080)"
+    ok "LaunchAgent scriptorium cargado (Caddy sirviendo ~/src/html en :8080)"
   else
-    warn "No se pudo cargar el LaunchAgent bibliotecario (¿sesión sin GUI?); se activará al iniciar sesión"
+    warn "No se pudo cargar el LaunchAgent scriptorium (¿sesión sin GUI?); se activará al iniciar sesión"
   fi
 
-  # El puerto 80 y el nombre `bibliotecario` requieren root. Solo pide sudo la
+  # El puerto 80 y el nombre `scriptorium` requieren root. Solo pide sudo la
   # primera vez: si /etc/hosts ya resuelve el nombre, lo damos por configurado.
-  if grep -qE "^[^#]*[[:space:]]bibliotecario([[:space:]]|$)" /etc/hosts 2>/dev/null; then
-    ok "http://bibliotecario (puerto 80) ya configurado"
+  if grep -qE "^[^#]*[[:space:]]scriptorium([[:space:]]|$)" /etc/hosts 2>/dev/null; then
+    ok "http://scriptorium (puerto 80) ya configurado"
   else
-    warn "Habilitando http://bibliotecario (puerto 80) — requiere sudo:"
-    sudo bash "$DOTFILES/macos/bibliotecario-root-setup.sh"
+    warn "Habilitando http://scriptorium (puerto 80) — requiere sudo:"
+    sudo bash "$DOTFILES/macos/scriptorium-root-setup.sh"
   fi
 }
 
@@ -513,9 +513,9 @@ if [[ "$PLATFORM" == "macos" ]]; then
   run_step "archive-downloads" setup_archive_downloads
 fi
 
-# macOS: servidor web local "bibliotecario" (Caddy sirviendo ~/src/html en :8080)
+# macOS: servidor web local "scriptorium" (Caddy sirviendo ~/src/html en :8080)
 if [[ "$PLATFORM" == "macos" ]]; then
-  run_step "bibliotecario" setup_bibliotecario
+  run_step "scriptorium" setup_scriptorium
 fi
 
 # Switch dotfiles remote from HTTPS to SSH if needed

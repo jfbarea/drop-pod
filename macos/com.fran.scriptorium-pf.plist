@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>com.fran.bibliotecario-pf</string>
+  <string>com.fran.scriptorium-pf</string>
 
   <!-- Recarga la redirección pf 80 -> 8080 en cada arranque. pf no conserva
        reglas de anclas no-Apple entre reinicios, por eso lo reaplicamos. -->
@@ -11,13 +11,13 @@
   <array>
     <string>/sbin/pfctl</string>
     <string>-ef</string>
-    <string>/etc/pf-bibliotecario.conf</string>
+    <string>/etc/pf-scriptorium.conf</string>
   </array>
 
   <key>RunAtLoad</key>
   <true/>
 
   <key>StandardErrorPath</key>
-  <string>/tmp/com.fran.bibliotecario-pf.err</string>
+  <string>/tmp/com.fran.scriptorium-pf.err</string>
 </dict>
 </plist>

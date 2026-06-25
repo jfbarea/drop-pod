@@ -1,10 +1,10 @@
-# Servidor web local "bibliotecario": sirve ~/src/html con listado de
-# directorios navegable. Lo arranca el LaunchAgent com.fran.bibliotecario a
-# través de bibliotecario-serve.sh.
+# Servidor web local "scriptorium": sirve ~/src/html con listado de
+# directorios navegable. Lo arranca el LaunchAgent com.fran.scriptorium a
+# través de scriptorium-serve.sh.
 #
 # Escucha en :8080 sin matcher de host, así que responde a cualquier Host
-# (localhost, bibliotecario, …). La resolución del nombre `bibliotecario` y la
-# redirección del puerto 80 -> 8080 las hace bibliotecario-root-setup.sh.
+# (localhost, scriptorium, …). La resolución del nombre `scriptorium` y la
+# redirección del puerto 80 -> 8080 las hace scriptorium-root-setup.sh.
 #
 # {$HOME} lo sustituye el adaptador Caddyfile con la variable de entorno HOME
 # del proceso (el LaunchAgent la hereda). launchd no expande $HOME en rutas.
@@ -20,7 +20,7 @@
 	# sí) para que el panel lector (iframe) no muestre versiones cacheadas viejas.
 	header Cache-Control "no-cache"
 	file_server {
-		browse {$HOME}/.config/caddy/bibliotecario-browse.html
+		browse {$HOME}/.config/caddy/scriptorium-browse.html
 	}
 	encode gzip
 }

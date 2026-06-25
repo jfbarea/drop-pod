@@ -3,14 +3,14 @@
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>com.fran.bibliotecario</string>
+  <string>com.fran.scriptorium</string>
 
   <!-- launchd no expande $HOME en rutas; lo resolvemos vía bash en runtime. -->
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
     <string>-c</string>
-    <string>exec "$HOME/.local/bin/bibliotecario-serve.sh"</string>
+    <string>exec "$HOME/.local/bin/scriptorium-serve.sh"</string>
   </array>
 
   <!-- Arranca al cargar la sesión y se reinicia solo si el proceso muere:
@@ -21,8 +21,8 @@
   <true/>
 
   <key>StandardOutPath</key>
-  <string>/tmp/com.fran.bibliotecario.out</string>
+  <string>/tmp/com.fran.scriptorium.out</string>
   <key>StandardErrorPath</key>
-  <string>/tmp/com.fran.bibliotecario.err</string>
+  <string>/tmp/com.fran.scriptorium.err</string>
 </dict>
 </plist>

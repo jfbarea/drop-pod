@@ -1,7 +1,0 @@
-# Ancla pf de bibliotecario. La instala bibliotecario-root-setup.sh en
-# /etc/pf.anchors/bibliotecario y la carga el ruleset /etc/pf-bibliotecario.conf.
-#
-# Redirige en loopback el puerto 80 al 8080, donde escucha el Caddy de usuario.
-# Así http://bibliotecario (puerto 80 implícito) llega al servidor sin que éste
-# tenga que correr como root para bindear un puerto privilegiado.
-rdr pass on lo0 inet proto tcp from any to any port 80 -> 127.0.0.1 port 8080
