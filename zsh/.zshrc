@@ -23,6 +23,9 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
 [ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"
 
+# ── rbenv (Ruby 2.7.6 para builds iOS / CocoaPods de revel-app) ────────────────
+command -v rbenv >/dev/null && eval "$(rbenv init - zsh)"
+
 # ── History ───────────────────────────────────────────────────────────────────
 HISTSIZE=10000
 SAVEHIST=10000
