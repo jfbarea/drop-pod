@@ -47,6 +47,7 @@ Cuando generes HTML como **output principal** para el usuario (artefactos de `/r
 - No saltes hooks (`--no-verify`, `--no-gpg-sign`) salvo petición explícita.
 - Prefiere crear commits nuevos antes que `--amend` cuando algo falla.
 - **Nunca hagas `git push` en ningún repositorio.** Todo push es manual y lo hace el usuario. Hay un hook que lo bloquea; no intentes sortearlo.
+- **Pull requests en inglés.** Cuando crees una PR, todo su texto (título, descripción, comentarios, checklist…) va en inglés, aunque los commits o la conversación estén en español.
 
 ## Cómo se actualiza este fichero
 
