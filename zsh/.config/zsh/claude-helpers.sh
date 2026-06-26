@@ -9,3 +9,18 @@ claude-new() {
   git init -q
   echo "Repo creado en ~/src/$name. Lanza 'claude' y ejecuta /scaffold"
 }
+
+# Cuenta personal de Claude en ~/src/fran y subdirectorios.
+# Dentro de ese árbol usa un config dir aparte (~/.claude-personal) con su
+# propio login de suscripción personal; fuera de él, la config global normal.
+claude() {
+  local personal_root="$HOME/src/fran"
+  case "$PWD/" in
+    "$personal_root"/*)
+      CLAUDE_CONFIG_DIR="$HOME/.claude-personal" command claude "$@"
+      ;;
+    *)
+      command claude "$@"
+      ;;
+  esac
+}
