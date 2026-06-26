@@ -39,7 +39,7 @@ Cuando el usuario diga "vamos a feature" / "hagamos feature":
 2. Genera/actualiza `plan/research/<slug>.md` (~30-50 líneas: problema, opción elegida, sketch, riesgos clave). Es el resumen destilado para el architect, barato en tokens.
 3. Cambia el badge del HTML a `READY_FOR_FEATURE` y añade entrada a bitácora.
 4. Commitea: `research(<slug>): handed off to feature`.
-5. Continúa con el flujo de /feature pasando el contenido de `plan/research/<slug>.md` al architect (el Padre Tormenta) como input principal.
+5. Continúa con el flujo de /feature pasando el contenido de `plan/research/<slug>.md` al architect como input principal.
 
 ## Commits
 
