@@ -182,7 +182,7 @@ check "user.name = Fran"                  bash -c '[[ "$(git config --global use
 check "user.email = jfcobarea@gmail.com"  bash -c '[[ "$(git config --global user.email)" == "jfcobarea@gmail.com" ]]'
 check "core.pager = delta"                bash -c '[[ "$(git config --global core.pager)" == "delta" ]]'
 check "init.defaultBranch = main"         bash -c '[[ "$(git config --global init.defaultBranch)" == "main" ]]'
-check "pull.rebase = true"                bash -c '[[ "$(git config --global pull.rebase)" == "true" ]]'
+check "pull.rebase = false"               bash -c '[[ "$(git config --global pull.rebase)" == "false" ]]'
 check "credential helper github.com = gh"  bash -c 'git config --global --get-all "credential.https://github.com.helper" | grep -q "gh auth git-credential"'
 check "credential helper gist = gh"        bash -c 'git config --global --get-all "credential.https://gist.github.com.helper" | grep -q "gh auth git-credential"'
 
