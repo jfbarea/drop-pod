@@ -412,23 +412,22 @@ function openDoc(node){
 // Maquetación de impresión inyectada en el iframe antes de imprimir. Las páginas
 // están pensadas para pantalla ancha; sin esto, en A4 los tamaños en px salen
 // gigantes y las líneas cortas. Best-effort sobre HTML arbitrario:
-//   - Margen de página consistente en TODAS las páginas (@page{margin}), para que
-//     los saltos tengan respiro y el contenido no se corte a ras del borde.
-//   - Sin franjas blancas: el fondo oscuro se pinta en el root (html), que Chrome
-//     extiende también al área de margen de cada página. Va solo en html (no en
-//     body con !important) para no pisar un posible degradado/imagen del body.
-//     [Verificado renderizando con Chrome headless: el margen sale oscuro y los
-//     bloques rompen con hueco; con @page{margin:0} se cercenaban a ras del borde.]
+//   - Sin franjas blancas: @page{margin:0} para que NO exista banda de margen. El
+//     diálogo real de Chrome ("Guardar como PDF") deja esa banda sin pintar aunque
+//     el html tenga fondo —headless sí la pinta, de ahí la confusión previa—, así
+//     que la eliminamos y el respiro de los saltos lo da un padding en el body. Con
+//     margin:0 el desplegable "Márgenes: Predeterminado" respeta el 0 declarado, y
+//     el fondo oscuro (html y body) llega a los cuatro bordes en todas las páginas.
 //   - Reescala la tipografía a pt y lleva el contenido a ancho completo.
 //   - print-color-adjust:exact para no depender de que el usuario active
 //     "Background graphics" en el diálogo.
-// El color del root se detecta de la propia página (no se asume), con el --paper
+// El color del fondo se detecta de la propia página (no se asume), con el --paper
 // del scriptorium como fallback.
 function printCss(bg){
   return `@media print{
-  @page{size:A4;margin:14mm}
+  @page{size:A4;margin:0}
   html{background:${bg} !important;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
-  body{margin:0 !important;padding:0 !important;width:auto !important;max-width:none !important;
+  body{margin:0 !important;padding:14mm !important;width:auto !important;max-width:none !important;background:${bg} !important;
     font-size:11pt !important;line-height:1.5 !important;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
   body>*{max-width:none !important;width:auto !important;margin-left:0 !important;margin-right:0 !important;float:none !important}
   h1{font-size:20pt !important;line-height:1.2 !important}
