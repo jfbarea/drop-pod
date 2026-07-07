@@ -67,7 +67,7 @@
     ],
     "defaultMode": "acceptEdits"
   },
-  "model": "opus",
+  "model": "claude-fable-5[1m]",
   "hooks": {
     "PreToolUse": [
       {
@@ -115,6 +115,6 @@
     }
   },
   "theme": "dark",
-  "agentPushNotifEnabled": true,
-  "preferredNotifChannel": "ghostty"
+  "preferredNotifChannel": "ghostty",
+  "agentPushNotifEnabled": true
 }
