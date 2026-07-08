@@ -41,6 +41,17 @@ Cuando generes HTML como **output principal** para el usuario (artefactos de `/r
   - `print-color-adjust:exact` (con prefijo `-webkit-`) para conservar la paleta sin depender de que se active "Background graphics" en el diálogo.
 - HTML autocontenido: CSS inline, sin dependencias externas más allá del `<link>` de fuentes (que degrada offline), abre con `file://`.
 - **Ubicación.** Si el HTML se genera desde un repositorio, créalo en `~/src/html/<repo-name>/`, donde `<repo-name>` es el nombre del directorio raíz del repo (el basename de `git rev-parse --show-toplevel`). Ejemplo: desde un repo `revel-app` → `~/src/html/revel-app/`. Crea el directorio si no existe. No dejes el HTML dentro del propio repo salvo que el usuario lo pida explícitamente.
+- **Rotación a `archive/` (obligatoria al escribir).** El scriptorium solo se nutre cuando el usuario te pide generar un HTML en `~/src/html/<repo-name>/`. Cada vez que vayas a crear uno, **antes de escribirlo** rota esa misma carpeta: mueve a `~/src/html/<repo-name>/archive/` todos los ficheros de nivel superior de esa carpeta que tengan **más de 7 días** de antigüedad (mtime), creando `archive/` si no existe. Reglas:
+  - Solo el nivel superior de esa carpeta (no desciendas dentro de `archive/`, no toques otras carpetas de repos).
+  - **No** muevas: la propia carpeta `archive/`, `index.html` (es la landing que sirve Caddy en esa carpeta), ni basura del sistema (`.DS_Store`, `.localized`).
+  - El fichero nuevo que vas a crear se queda fuera de `archive/` (es de hoy). El criterio es la antigüedad, así que regenerar un doc lo devuelve a la carpeta principal.
+  - Ante colisión de nombre en `archive/`, no sobrescribas: añade sufijo (p. ej. `.archived-<epoch>`).
+  - Comando de referencia (ejecútalo para el `<repo-name>` en el que estés escribiendo):
+    ```bash
+    D=~/src/html/<repo-name>; mkdir -p "$D/archive"; find "$D" -mindepth 1 -maxdepth 1 -type f \
+      ! -name index.html ! -name '.DS_Store' ! -name '.localized' -mtime +7 \
+      -exec sh -c 'for f; do t="$(dirname "$f")/archive/$(basename "$f")"; [ -e "$t" ] && t="$t.archived-$(date +%s)"; mv "$f" "$t"; done' _ {} +
+    ```
 - **Compatible con el scriptorium.** Todo HTML que generes en `~/src/html/` lo sirve y cataloga el servidor local "scriptorium" (Caddy), que lista el árbol y **previsualiza los `.html` dentro de un iframe** en su panel lector. Para que encaje:
   - Extensión `.html` y nombre de fichero descriptivo en kebab-case (el catálogo filtra por extensión y abre inline solo los `.html`).
   - Debe verse bien **embebido en un iframe estrecho**: layout responsive, nada de frame-busting ni `target="_top"`, sin asumir que es la ventana top-level (no dependas de `window.top`, popups, ni de la URL de la barra).
