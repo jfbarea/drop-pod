@@ -7,6 +7,9 @@ Escucha SOLO en 127.0.0.1:8737 y expone:
                `claude` en tmux -- la herramienta Artifact solo existe en
                modo interactivo, no en `claude -p` ni en el Agent SDK.
   GET  /shares -> mapping persistido rel-path -> {url, sharedAt}
+  POST /delete {"path": "/<rel>"} -> mueve el fichero a ~/.Trash/ y limpia su
+               entrada del mapping si la tenia. Nunca borra el artifact
+               remoto (no existe API para eso).
 
 Lo arranca scriptorium-share-serve.sh vía el LaunchAgent
 com.fran.scriptorium-share. El proxy same-origin (/-/*) que lo expone al
@@ -38,6 +41,7 @@ MODEL = "claude-haiku-4-5-20251001"
 CLAUDE_BIN = str(Path.home() / ".local" / "bin" / "claude")
 BASE_DIR = (Path.home() / "src" / "html").resolve()
 MAPPING_FILE = BASE_DIR / ".scriptorium-shares.json"
+TRASH_DIR = Path.home() / ".Trash"
 SESSION_NAME = "scriptorium-share"
 RESULT_DIR = Path(tempfile.gettempdir()) / "scriptorium-share"
 TIMEOUT_SECONDS = 180
@@ -52,6 +56,7 @@ POLL_INTERVAL_SECONDS = 1.0
 CLAUDE_CWD = str(Path.home() / "drop-pod")
 
 publish_lock = threading.Lock()
+mapping_lock = threading.Lock()
 
 
 def load_mapping() -> dict:
@@ -78,6 +83,17 @@ def save_mapping(mapping: dict) -> None:
         raise
 
 
+def update_mapping(mutator) -> dict:
+    # load->mutate->save bajo mapping_lock para que /share (al terminar) y
+    # /delete (en cualquier momento) nunca hagan un read-modify-write sobre
+    # una foto obsoleta del mapping y se pisen entre si (lost update).
+    with mapping_lock:
+        mapping = load_mapping()
+        mutator(mapping)
+        save_mapping(mapping)
+        return mapping
+
+
 def resolve_shared_path(raw_path: str) -> Path | None:
     if not raw_path or not isinstance(raw_path, str):
         return None
@@ -94,6 +110,47 @@ def resolve_shared_path(raw_path: str) -> Path | None:
     if not candidate.is_file():
         return None
     return candidate
+
+
+def resolve_delete_path(raw_path: str) -> Path | None:
+    if not raw_path or not isinstance(raw_path, str):
+        return None
+    rel = raw_path.lstrip("/")
+    if not rel:
+        return None
+    # Se devuelve el path SIN resolver el componente final (a diferencia de
+    # resolve_shared_path): si es un symlink, las operaciones posteriores
+    # (rename) deben actuar sobre el enlace en si, no sobre su destino. El
+    # realpath solo se usa aqui para comprobar que no escapa de BASE_DIR
+    # (traversal o symlink cuyo destino final cae fuera).
+    target = BASE_DIR / rel
+    try:
+        resolved = target.resolve()
+    except OSError:
+        return None
+    try:
+        resolved.relative_to(BASE_DIR)
+    except ValueError:
+        return None
+    return target
+
+
+def is_mapping_file(target: Path) -> bool:
+    return target.name == MAPPING_FILE.name or target.name.startswith(MAPPING_FILE.stem + "-")
+
+
+def move_to_trash(target: Path) -> Path:
+    TRASH_DIR.mkdir(parents=True, exist_ok=True)
+    dest = TRASH_DIR / target.name
+    if dest.exists() or dest.is_symlink():
+        stamp = int(time.time())
+        dest = TRASH_DIR / f"{target.name}.deleted-{stamp}"
+        counter = 1
+        while dest.exists() or dest.is_symlink():
+            dest = TRASH_DIR / f"{target.name}.deleted-{stamp}-{counter}"
+            counter += 1
+    os.rename(str(target), str(dest))
+    return dest
 
 
 def tmux_session_exists(name: str) -> bool:
@@ -184,10 +241,14 @@ class Handler(BaseHTTPRequestHandler):
         self._send_json(404, {"error": "not found"})
 
     def do_POST(self):
-        if self.path != "/share":
+        if self.path == "/share":
+            self._handle_share()
+        elif self.path == "/delete":
+            self._handle_delete()
+        else:
             self._send_json(404, {"error": "not found"})
-            return
 
+    def _handle_share(self):
         length = int(self.headers.get("Content-Length", 0) or 0)
         raw_body = self.rfile.read(length) if length else b""
         try:
@@ -210,21 +271,72 @@ class Handler(BaseHTTPRequestHandler):
 
         try:
             rel_key = str(abs_path.relative_to(BASE_DIR))
-            mapping = load_mapping()
-            existing_url = (mapping.get(rel_key) or {}).get("url")
+            # Lectura previa solo para decidir si se pasa una url existente al
+            # prompt de publish(); es una foto que puede quedar obsoleta
+            # mientras publish() tarda (30-180s), pero no importa: no se usa
+            # para escribir, solo para el texto del prompt.
+            existing_url = (load_mapping().get(rel_key) or {}).get("url")
 
             status, payload = publish(abs_path, existing_url)
 
             if status == 200:
-                mapping[rel_key] = {
-                    "url": payload["url"],
-                    "sharedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-                }
-                save_mapping(mapping)
+                def _set_share(mapping: dict) -> None:
+                    mapping[rel_key] = {
+                        "url": payload["url"],
+                        "sharedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                    }
+
+                # Releido y mutado bajo mapping_lock justo aqui, no la foto
+                # de antes de publish(): si un /delete de OTRO doc borro su
+                # entrada mientras publish() estaba en curso, este guardado
+                # parte del mapping YA sin esa entrada y no la resucita.
+                update_mapping(_set_share)
 
             self._send_json(status, payload)
         finally:
             publish_lock.release()
+
+    def _handle_delete(self):
+        length = int(self.headers.get("Content-Length", 0) or 0)
+        raw_body = self.rfile.read(length) if length else b""
+        try:
+            body = json.loads(raw_body or b"{}")
+        except json.JSONDecodeError:
+            self._send_json(400, {"error": "JSON invalido"})
+            return
+
+        target = resolve_delete_path(body.get("path", "")) if isinstance(body, dict) else None
+        if target is None:
+            self._send_json(400, {"error": "path invalido: fuera de ~/src/html"})
+            return
+
+        if not target.exists():
+            self._send_json(404, {"error": "no existe"})
+            return
+        if target.is_dir():
+            self._send_json(400, {"error": "no se pueden borrar directorios"})
+            return
+        if not target.is_file():
+            self._send_json(400, {"error": "solo se pueden borrar ficheros regulares"})
+            return
+        if is_mapping_file(target):
+            self._send_json(400, {"error": "no se puede borrar el mapping interno"})
+            return
+
+        try:
+            dest = move_to_trash(target)
+        except OSError as exc:
+            self._send_json(500, {"error": f"no se pudo mover a la papelera: {exc}"})
+            return
+
+        rel_key = str(target.relative_to(BASE_DIR))
+
+        def _drop(mapping: dict) -> None:
+            mapping.pop(rel_key, None)
+
+        update_mapping(_drop)
+
+        self._send_json(200, {"trashed": str(dest)})
 
 
 def main() -> None:
