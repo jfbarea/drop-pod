@@ -463,6 +463,32 @@ setup_scriptorium() {
   fi
 }
 
+setup_scriptorium_share() {
+  # macOS-only: bridge HTTP local (127.0.0.1:8737) para el botón «Compartir»
+  # del scriptorium, mantenido vivo por un LaunchAgent (RunAtLoad + KeepAlive).
+  # Expuesto al visor vía el proxy same-origin /-/* de scriptorium.Caddyfile
+  # (ver setup_scriptorium); nunca fuera de localhost.
+  local bridge_src="$DOTFILES/macos/scriptorium-share.py"
+  local bridge_dst="$HOME/.local/bin/scriptorium-share.py"
+  local script_src="$DOTFILES/macos/scriptorium-share-serve.sh"
+  local script_dst="$HOME/.local/bin/scriptorium-share-serve.sh"
+  local plist_src="$DOTFILES/macos/com.fran.scriptorium-share.plist"
+  local plist_dst="$HOME/Library/LaunchAgents/com.fran.scriptorium-share.plist"
+
+  chmod +x "$script_src"
+  safe_link "$bridge_src" "$bridge_dst"
+  safe_link "$script_src" "$script_dst"
+  safe_link "$plist_src"  "$plist_dst"
+
+  # Recargar el LaunchAgent de forma idempotente (unload + load -w).
+  launchctl unload "$plist_dst" 2>/dev/null || true
+  if launchctl load -w "$plist_dst" 2>/dev/null; then
+    ok "LaunchAgent scriptorium-share cargado (bridge en 127.0.0.1:8737)"
+  else
+    warn "No se pudo cargar el LaunchAgent scriptorium-share (¿sesión sin GUI?); se activará al iniciar sesión"
+  fi
+}
+
 copy_claude_template() {
   if [[ -d "$HOME/src" && ! -f "$HOME/src/CLAUDE.md" ]]; then
     cp "$DOTFILES/templates/CLAUDE.md" "$HOME/src/CLAUDE.md"
@@ -516,6 +542,11 @@ fi
 # macOS: servidor web local "scriptorium" (Caddy sirviendo ~/src/html en :8080)
 if [[ "$PLATFORM" == "macos" ]]; then
   run_step "scriptorium" setup_scriptorium
+fi
+
+# macOS: bridge del botón «Compartir» del scriptorium (127.0.0.1:8737)
+if [[ "$PLATFORM" == "macos" ]]; then
+  run_step "scriptorium-share" setup_scriptorium_share
 fi
 
 # Switch dotfiles remote from HTTPS to SSH if needed

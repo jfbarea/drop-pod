@@ -176,6 +176,27 @@ if [[ "$PLATFORM" == "macos" ]]; then
     test -f /Library/LaunchDaemons/com.fran.scriptorium-pf.plist
 fi
 
+# ── 7d. macOS: bridge del botón «Compartir» del scriptorium ─────────────────
+if [[ "$PLATFORM" == "macos" ]]; then
+  section "macOS — scriptorium-share"
+  check_symlink "~/.local/bin/scriptorium-share.py" \
+    "$HOME/.local/bin/scriptorium-share.py" "$DOTFILES/macos/scriptorium-share.py"
+  check_symlink "~/.local/bin/scriptorium-share-serve.sh" \
+    "$HOME/.local/bin/scriptorium-share-serve.sh" "$DOTFILES/macos/scriptorium-share-serve.sh"
+  check_symlink "~/Library/LaunchAgents/com.fran.scriptorium-share.plist" \
+    "$HOME/Library/LaunchAgents/com.fran.scriptorium-share.plist" \
+    "$DOTFILES/macos/com.fran.scriptorium-share.plist"
+  check "scriptorium-share-serve.sh ejecutable" test -x "$DOTFILES/macos/scriptorium-share-serve.sh"
+  check "LaunchAgent scriptorium-share cargado" bash -c 'launchctl list | grep -q com.fran.scriptorium-share'
+  check "bridge responde en 127.0.0.1:8737/shares" \
+    bash -c 'curl -fsS --max-time 3 http://127.0.0.1:8737/shares'
+  check "proxy same-origin /-/shares responde vía Caddy" \
+    bash -c 'curl -fsS --max-time 3 http://localhost:8080/-/shares'
+  check "Caddyfile expone la ruta /-/*" grep -q 'handle_path /-/\*' "$DOTFILES/macos/scriptorium.Caddyfile"
+  check "Caddyfile oculta el mapping del listado" \
+    grep -q 'hide .scriptorium-shares.json' "$DOTFILES/macos/scriptorium.Caddyfile"
+fi
+
 # ── 8. Configuración de git ───────────────────────────────────────────────────
 section "Git config (~/.gitconfig)"
 check "user.name = Fran"                  bash -c '[[ "$(git config --global user.name)" == "Fran" ]]'
