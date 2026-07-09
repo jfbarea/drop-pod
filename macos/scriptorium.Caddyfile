@@ -19,8 +19,23 @@
 	# Artefactos en edición constante: revalidar siempre (304 si no cambió, 200 si
 	# sí) para que el panel lector (iframe) no muestre versiones cacheadas viejas.
 	header Cache-Control "no-cache"
+
+	# Proxy same-origin hacia el bridge del botón «Compartir»
+	# (macos/scriptorium-share.py, solo loopback en 127.0.0.1:8737). Este
+	# :8080 escucha en todas las interfaces, así que restringimos la ruta a
+	# peticiones que ya llegan desde el propio Mac (127.0.0.1/::1); cualquier
+	# otra IP de la LAN recibe 403 y no puede disparar publicaciones.
+	@share-not-local not remote_ip 127.0.0.1 ::1
+	handle_path /-/* {
+		respond @share-not-local 403
+		reverse_proxy 127.0.0.1:8737
+	}
+
 	file_server {
 		browse {$HOME}/.config/caddy/scriptorium-browse.html
+		# Fichero interno del bridge de compartir (y su temporal atómico de
+		# escritura): no deben salir en el listado del catálogo.
+		hide .scriptorium-shares.json .scriptorium-shares-*.tmp
 	}
 	encode gzip
 }
