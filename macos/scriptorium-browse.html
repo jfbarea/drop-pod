@@ -40,6 +40,7 @@
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
 html{height:100%}
 body{
   height:100%;
@@ -140,6 +141,12 @@ header{
 }
 .docbar a:hover,.docbar .back:hover{color:var(--accent)}
 .docbar svg{width:13px;height:13px;stroke:currentColor;fill:none}
+.docbar .back:disabled{opacity:.6;cursor:default}
+.docbar .back.publishing svg{animation:share-spin 1s linear infinite}
+@keyframes share-spin{to{transform:rotate(360deg)}}
+.docbar .share{display:inline-flex;align-items:center;gap:8px}
+.docbar .share-msg{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted)}
+.docbar .share-msg.error{color:#e5484d}
 .frame{flex:1;width:100%;border:none;background:var(--surface)}
 
 /* ---------- mobile ---------- */
@@ -227,6 +234,117 @@ const qEl      = document.getElementById('q');
 const FOLDER = '<svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>';
 const DOC    = '<svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/></svg>';
 const CHEV   = '<svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>';
+const SHARE  = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5 15.4 17.5"/><path d="M15.4 6.5 8.6 10.5"/></svg>';
+
+/* ────────── botón «compartir» de la docbar (bridge en /-/share) ────────── */
+let sharesCache = null;
+const SHARE_TITLE_NEW    = 'Publicar como Artifact de claude.ai';
+const SHARE_TITLE_UPDATE = 'Actualizar el Artifact publicado';
+
+async function loadShares(force){
+  if (sharesCache && !force) return sharesCache;
+  try {
+    const r = await fetch('/-/shares', {cache:'no-cache'});
+    if (!r.ok) return sharesCache || {};
+    sharesCache = await r.json();
+  } catch (e) {
+    return sharesCache || {};
+  }
+  return sharesCache;
+}
+
+const shareKeyOf = node => node.abs.replace(/^\/+/, '');
+
+function shareWrapFor(node){
+  const wrap = document.getElementById('share');
+  return (wrap && wrap.dataset.abs === node.abs) ? wrap : null;
+}
+
+function shareRefs(wrap){
+  return {
+    btn:   wrap.querySelector('#share-btn'),
+    label: wrap.querySelector('.share-label'),
+    link:  wrap.querySelector('#share-link'),
+    msgEl: wrap.querySelector('#share-msg'),
+  };
+}
+
+async function wireShare(node){
+  const wrap = shareWrapFor(node);
+  if (!wrap) return;
+  const btn = wrap.querySelector('#share-btn');
+  if (btn) btn.onclick = () => doShare(node);
+  const shares = await loadShares();
+  const live = shareWrapFor(node);
+  if (!live) return;
+  const entry = shares[shareKeyOf(node)];
+  if (entry && entry.url){
+    const {link, label, btn: liveBtn} = shareRefs(live);
+    link.href = entry.url;
+    link.hidden = false;
+    label.textContent = 'actualizar';
+    liveBtn.title = SHARE_TITLE_UPDATE;
+  }
+}
+
+async function doShare(node){
+  let wrap = shareWrapFor(node);
+  if (!wrap) return;
+  let {btn, label, link, msgEl} = shareRefs(wrap);
+  btn.disabled = true;
+  btn.classList.add('publishing');
+  msgEl.textContent = '';
+  msgEl.classList.remove('error');
+  label.textContent = 'publicando…';
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 200000);
+  try {
+    const r = await fetch('/-/share', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({path: node.abs}),
+      signal: controller.signal,
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
+    await loadShares(true);
+    wrap = shareWrapFor(node);
+    if (!wrap) return;
+    ({btn, label, link, msgEl} = shareRefs(wrap));
+    msgEl.textContent = '';
+    msgEl.classList.remove('error');
+    link.href = data.url;
+    link.hidden = false;
+    btn.title = SHARE_TITLE_UPDATE;
+    try { await navigator.clipboard.writeText(data.url); } catch (e) {}
+    label.textContent = '✓ copiado';
+    setTimeout(() => {
+      const w = shareWrapFor(node);
+      if (w) w.querySelector('.share-label').textContent = 'actualizar';
+    }, 2000);
+  } catch (e) {
+    wrap = shareWrapFor(node);
+    if (!wrap) return;
+    ({btn, label, link, msgEl} = shareRefs(wrap));
+    let text;
+    if (e.name === 'AbortError') text = 'error: tiempo de espera agotado';
+    else if (e instanceof TypeError) text = 'error: no se pudo conectar con el bridge';
+    else text = `error: ${e.message}`;
+    msgEl.textContent = text;
+    msgEl.classList.add('error');
+    label.textContent = link.hidden ? 'compartir' : 'actualizar';
+    btn.title = link.hidden ? SHARE_TITLE_NEW : SHARE_TITLE_UPDATE;
+  } finally {
+    wrap = shareWrapFor(node);
+    if (wrap){
+      const live = shareRefs(wrap);
+      live.btn.disabled = false;
+      live.btn.classList.remove('publishing');
+    }
+    clearTimeout(timer);
+  }
+}
 
 /* ────────── modelo de árbol (carga perezosa vía JSON) ────────── */
 const ROOT = {name:'', abs:PATH, isDir:true, children:null};
@@ -254,6 +372,7 @@ const ext = it => {
   return m ? m[1] : 'archivo';
 };
 const isHtml = it => !it.isDir && /\.html?$/i.test(it.name);
+const isShareable = it => !it.isDir && /\.html$/i.test(it.name);
 
 async function loadChildren(node){
   if (node.children !== null) return node.children;
@@ -396,6 +515,11 @@ function openDoc(node){
       <div class="docbar">
         <span class="name">${node.name}</span>
         ${isHtml(node) ? `<button class="back" id="pdf" title="Imprimir → Guardar como PDF">${pdf}PDF</button>` : ''}
+        ${isShareable(node) ? `<span class="share" id="share" data-abs="${node.abs}">
+          <a class="share-link" id="share-link" target="_blank" rel="noopener" hidden>artifact</a>
+          <button class="back" id="share-btn" title="${SHARE_TITLE_NEW}">${SHARE}<span class="share-label">compartir</span></button>
+          <span class="share-msg" id="share-msg"></span>
+        </span>` : ''}
         <a href="${src}" target="_blank" rel="noopener">${ext}pestaña nueva</a>
         <button class="back" id="back">${back}catálogo</button>
       </div>
@@ -406,6 +530,7 @@ function openDoc(node){
   if (b) b.onclick = () => document.body.classList.remove('reading');
   const p = document.getElementById('pdf');
   if (p) p.onclick = () => exportPdf(readerEl.querySelector('.frame'));
+  if (isShareable(node)) wireShare(node);
   render();
 }
 
