@@ -113,7 +113,6 @@ header{
   font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.02em;color:var(--muted);
   display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding-left:19px;
 }
-.entry .meta .tag{color:var(--accent)}
 .entry .meta .sep{color:var(--faint)}
 .entry .meta .path{color:var(--faint);font-style:normal}
 
@@ -354,25 +353,22 @@ let activeAbs = null;
 
 const MAX_DEPTH = 12;
 
-const human = b => {
-  if (b == null) return '';
-  if (b < 1024) return b + ' B';
-  const u = ['KB','MB','GB','TB']; let i = -1;
-  do { b /= 1024; i++; } while (b >= 1024 && i < u.length - 1);
-  return (b < 10 ? b.toFixed(1) : Math.round(b)) + ' ' + u[i];
-};
 const fmt = iso => {
   const d = new Date(iso); if (isNaN(d)) return '';
   const p = n => String(n).padStart(2, '0');
   return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
 };
-const ext = it => {
-  if (it.isDir) return 'carpeta';
-  const m = it.name.toLowerCase().match(/\.([a-z0-9]+)$/);
-  return m ? m[1] : 'archivo';
-};
 const isHtml = it => !it.isDir && /\.html?$/i.test(it.name);
 const isShareable = it => !it.isDir && /\.html$/i.test(it.name);
+const label = it => it.isDir ? it.name.replace(/\/$/,'') : (it.title || it.name);
+
+async function fetchTitle(node){
+  try {
+    const r = await fetch(encodeURI(node.abs) + '?v=' + encodeURIComponent(node.mtime || ''), {headers:{Range:'bytes=0-16383'}});
+    const m = (await r.text()).match(/<title[^>]*>([^<]+)<\/title>/i);
+    if (m) node.title = m[1].replace(/\s+/g,' ').trim();
+  } catch (e) {}
+}
 
 async function loadChildren(node){
   if (node.children !== null) return node.children;
@@ -383,11 +379,13 @@ async function loadChildren(node){
       name: d.name,
       abs:  node.abs + d.name,        // abs/name ya traen '/' final en carpetas
       isDir: d.is_dir,
-      bytes: d.size,
       mod:   fmt(d.mod_time),
       mtime: d.mod_time,              // crudo, para cache-bust del iframe
+      title: null,
       children: null,
-    })).sort((a,b) => (b.isDir - a.isDir) || a.name.localeCompare(b.name, 'es'));
+    }));
+    await Promise.all(node.children.filter(isHtml).map(fetchTitle));
+    node.children.sort((a,b) => (b.isDir - a.isDir) || label(a).localeCompare(label(b), 'es'));
   } catch (e) {
     node.children = [];
   }
@@ -406,11 +404,10 @@ function entryEl(node, depth, isAcc){
   el.className = 'entry' + (node.isDir ? '' : '') + (expanded.has(node.abs) ? ' open' : '') + (node.abs === activeAbs ? ' active' : '');
   const lead = node.isDir ? CHEV : '<span class="gap"></span>';
   const icon = node.isDir ? FOLDER : DOC;
-  const tag = ext(node);
   const meta = node.isDir
-    ? `<span>${node.children ? node.children.length + ' elem.' : 'carpeta'}</span><span class="sep">/</span><span class="tag">#${tag}</span>`
-    : `<span>${node.mod}</span><span class="sep">/</span><span>${human(node.bytes)}</span><span class="sep">/</span><span class="tag">#${tag}</span>`;
-  el.innerHTML = `<h3>${lead}${icon}<span class="nm">${node.name.replace(/\/$/,'')}</span></h3><div class="meta">${meta}</div>`;
+    ? `<span>${node.children ? node.children.length + ' elem.' : 'carpeta'}</span>`
+    : `<span>${node.mod}</span>`;
+  el.innerHTML = `<h3>${lead}${icon}<span class="nm">${label(node)}</span></h3><div class="meta">${meta}</div>`;
   return el;
 }
 
@@ -460,7 +457,7 @@ function renderSearch(){
   (function walk(node){
     if (!node.children) return;
     for (const c of node.children){
-      if (c.name.toLowerCase().includes(query)) matches.push(c);
+      if (c.name.toLowerCase().includes(query) || (c.title || '').toLowerCase().includes(query)) matches.push(c);
       if (c.isDir) walk(c);
     }
   })(ROOT);
