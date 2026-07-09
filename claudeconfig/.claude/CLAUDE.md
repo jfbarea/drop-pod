@@ -41,16 +41,29 @@ Cuando generes HTML como **output principal** para el usuario (artefactos de `/r
   - `print-color-adjust:exact` (con prefijo `-webkit-`) para conservar la paleta sin depender de que se active "Background graphics" en el diálogo.
 - HTML autocontenido: CSS inline, sin dependencias externas más allá del `<link>` de fuentes (que degrada offline), abre con `file://`.
 - **Ubicación.** Si el HTML se genera desde un repositorio, créalo en `~/src/html/<repo-name>/`, donde `<repo-name>` es el nombre del directorio raíz del repo (el basename de `git rev-parse --show-toplevel`). Ejemplo: desde un repo `revel-app` → `~/src/html/revel-app/`. Crea el directorio si no existe. No dejes el HTML dentro del propio repo salvo que el usuario lo pida explícitamente.
-- **Rotación a `archive/` (obligatoria al escribir).** El scriptorium solo se nutre cuando el usuario te pide generar un HTML en `~/src/html/<repo-name>/`. Cada vez que vayas a crear uno, **antes de escribirlo** rota esa misma carpeta: mueve a `~/src/html/<repo-name>/archive/` todos los ficheros de nivel superior de esa carpeta que tengan **más de 7 días** de antigüedad (mtime), creando `archive/` si no existe. Reglas:
-  - Solo el nivel superior de esa carpeta (no desciendas dentro de `archive/`, no toques otras carpetas de repos).
-  - **No** muevas: la propia carpeta `archive/`, `index.html` (es la landing que sirve Caddy en esa carpeta), ni basura del sistema (`.DS_Store`, `.localized`).
-  - El fichero nuevo que vas a crear se queda fuera de `archive/` (es de hoy). El criterio es la antigüedad, así que regenerar un doc lo devuelve a la carpeta principal.
-  - Ante colisión de nombre en `archive/`, no sobrescribas: añade sufijo (p. ej. `.archived-<epoch>`).
+- **Rotación a `archive/` (obligatoria al escribir).** El scriptorium solo se nutre cuando el usuario te pide generar un HTML en `~/src/html/<repo-name>/`. Cada vez que vayas a crear uno, **antes de escribirlo** rota esa misma carpeta por antigüedad (mtime) en cuatro niveles:
+  - Nivel superior de `~/src/html/<repo-name>/` → solo los ficheros de **hoy**.
+  - `archive/Yesterday/` → los de **ayer**.
+  - `archive/Last Week/` → los de la **última semana** (≤7 días), excepto los de hoy y ayer.
+  - `archive/Long Time/` → todo lo de **más de 7 días**.
+  Reglas:
+  - Orden, de más viejo a más nuevo: (1) a `Long Time` lo de >7 días esté donde esté (nivel superior, sueltos en `archive/`, `Yesterday` o `Last Week`); (2) a `Last Week` lo anterior a ayer que quede en nivel superior, `archive/` o `Yesterday`; (3) a `Yesterday` lo de ayer que quede en nivel superior o `archive/`. Crea los tres subdirectorios si no existen. Con estos pasos, lo que envejece va cayendo de nivel solo y los sueltos legacy de `archive/` migran también.
+  - Solo esos niveles (no desciendas dentro de `Long Time`, no toques otras carpetas de repos).
+  - **No** muevas: los subdirectorios de `archive/`, `index.html` (es la landing que sirve Caddy en esa carpeta), ni basura del sistema (`.DS_Store`, `.localized`).
+  - El fichero nuevo que vas a crear se queda en el nivel superior (es de hoy). El criterio es el mtime, así que regenerar un doc lo devuelve a la carpeta principal.
+  - Ante colisión de nombre en el destino, no sobrescribas: añade sufijo (p. ej. `.archived-<epoch>`).
   - Comando de referencia (ejecútalo para el `<repo-name>` en el que estés escribiendo):
     ```bash
-    D=~/src/html/<repo-name>; mkdir -p "$D/archive"; find "$D" -mindepth 1 -maxdepth 1 -type f \
-      ! -name index.html ! -name '.DS_Store' ! -name '.localized' -mtime +7 \
-      -exec sh -c 'for f; do t="$(dirname "$f")/archive/$(basename "$f")"; [ -e "$t" ] && t="$t.archived-$(date +%s)"; mv "$f" "$t"; done' _ {} +
+    D=~/src/html/<repo-name>; A="$D/archive"; Y="$A/Yesterday"; LW="$A/Last Week"; LT="$A/Long Time"
+    mkdir -p "$Y" "$LW" "$LT"
+    MV='d="$1"; shift; for f; do t="$d/$(basename "$f")"; [ -e "$t" ] && t="$t.archived-$(date +%s)"; mv "$f" "$t"; done'
+    EX=(! -name index.html ! -name '.DS_Store' ! -name '.localized')
+    find "$D" "$A" "$Y" "$LW" -mindepth 1 -maxdepth 1 -type f "${EX[@]}" -mtime +7 \
+      -exec sh -c "$MV" _ "$LT" {} +
+    find "$D" "$A" "$Y" -mindepth 1 -maxdepth 1 -type f "${EX[@]}" ! -newermt "$(date -v-1d +%F)" \
+      -exec sh -c "$MV" _ "$LW" {} +
+    find "$D" "$A" -mindepth 1 -maxdepth 1 -type f "${EX[@]}" ! -newermt "$(date +%F)" \
+      -exec sh -c "$MV" _ "$Y" {} +
     ```
 - **Compatible con el scriptorium.** Todo HTML que generes en `~/src/html/` lo sirve y cataloga el servidor local "scriptorium" (Caddy), que lista el árbol y **previsualiza los `.html` dentro de un iframe** en su panel lector. Para que encaje:
   - Extensión `.html` y nombre de fichero descriptivo en kebab-case (el catálogo filtra por extensión y abre inline solo los `.html`).
