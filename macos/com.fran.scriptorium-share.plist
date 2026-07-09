@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.fran.scriptorium-share</string>
+
+  <!-- launchd no expande $HOME en rutas; lo resolvemos vía bash en runtime. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <string>exec "$HOME/.local/bin/scriptorium-share-serve.sh"</string>
+  </array>
+
+  <!-- Arranca al cargar la sesión y se reinicia solo si el proceso muere:
+       el bridge está disponible en segundo plano todo el rato. -->
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/com.fran.scriptorium-share.out</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/com.fran.scriptorium-share.err</string>
+</dict>
+</plist>
