@@ -32,6 +32,10 @@
 	}
 
 	file_server {
+		# Sin resolución de ficheros índice: el catálogo (browse) expande cada
+		# carpeta pidiendo su listado JSON, y un index.html en la carpeta lo
+		# taparía (Caddy serviría el fichero y el árbol la pintaría vacía).
+		index off
 		browse {$HOME}/.config/caddy/scriptorium-browse.html
 		# Fichero interno del bridge de compartir (y su temporal atómico de
 		# escritura): no deben salir en el listado del catálogo.
