@@ -115,6 +115,17 @@ header{
 }
 .entry .meta .sep{color:var(--faint)}
 .entry .meta .path{color:var(--faint);font-style:normal}
+.entry .meta .trash{
+  margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:5px;
+  border:none;background:transparent;color:var(--muted);cursor:pointer;
+  padding:2px 6px;border-radius:6px;opacity:0;pointer-events:none;
+  font-family:"JetBrains Mono",monospace;font-size:10px;
+  transition:opacity .12s,background .12s,color .12s;
+}
+.entry .meta .trash svg{width:13px;height:13px;stroke:currentColor;fill:none;flex:none}
+.entry:hover .meta .trash,.entry .meta .trash:focus-visible,.entry .meta .trash.confirm,.entry .meta .trash.error{opacity:1;pointer-events:auto}
+.entry .meta .trash:hover{color:#e5484d;background:var(--surface-2)}
+.entry .meta .trash.confirm,.entry .meta .trash.error{color:#e5484d}
 
 .kids{margin:2px 0 4px;border-left:1px solid var(--line);margin-left:20px}
 .loading,.no-results,.empty-dir{
@@ -234,6 +245,7 @@ const FOLDER = '<svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill=
 const DOC    = '<svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/></svg>';
 const CHEV   = '<svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>';
 const SHARE  = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5 15.4 17.5"/><path d="M15.4 6.5 8.6 10.5"/></svg>';
+const TRASH  = '<svg viewBox="0 0 24 24" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
 
 /* ────────── botón «compartir» de la docbar (bridge en /-/share) ────────── */
 let sharesCache = null;
@@ -382,6 +394,7 @@ async function loadChildren(node){
       mod:   fmt(d.mod_time),
       mtime: d.mod_time,              // crudo, para cache-bust del iframe
       title: null,
+      parent: node,
       children: null,
     }));
     await Promise.all(node.children.filter(isHtml).map(fetchTitle));
@@ -406,9 +419,77 @@ function entryEl(node, depth, isAcc){
   const icon = node.isDir ? FOLDER : DOC;
   const meta = node.isDir
     ? `<span>${node.children ? node.children.length + ' elem.' : 'carpeta'}</span>`
-    : `<span>${node.mod}</span>`;
+    : `<span>${node.mod}</span><button class="trash" title="Borrar" aria-label="Borrar ${label(node)}">${TRASH}</button>`;
   el.innerHTML = `<h3>${lead}${icon}<span class="nm">${label(node)}</span></h3><div class="meta">${meta}</div>`;
+  if (!node.isDir) wireTrash(el.querySelector('.trash'), node);
   return el;
+}
+
+function showEmptyReader(){
+  activeAbs = null;
+  readerEl.innerHTML = `
+    <div class="empty">
+      <div class="glyph">¶</div>
+      <p>Despliega una carpeta o elige una página. Los <code>.html</code> se abren aquí mismo.</p>
+      <div class="hint">— sala de lectura —</div>
+    </div>`;
+  document.body.classList.remove('reading');
+}
+
+function wireTrash(btn, node){
+  if (!btn) return;
+  let timer = null;
+  let armedAt = 0;
+  const idle = () => {
+    clearTimeout(timer); timer = null;
+    btn.classList.remove('confirm', 'error');
+    btn.disabled = false;
+    btn.innerHTML = TRASH;
+    btn.title = 'Borrar';
+    btn.setAttribute('aria-label', `Borrar ${label(node)}`);
+  };
+  btn.onclick = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (btn.classList.contains('error')){ idle(); return; }
+    if (!btn.classList.contains('confirm')){
+      btn.classList.add('confirm');
+      btn.textContent = '¿borrar?';
+      btn.title = 'Confirmar borrado';
+      btn.setAttribute('aria-label', `Confirmar borrado de ${label(node)}`);
+      armedAt = Date.now();
+      timer = setTimeout(idle, 3000);
+      return;
+    }
+    if (Date.now() - armedAt < 350) return;
+    clearTimeout(timer);
+    btn.disabled = true;
+    btn.textContent = 'borrando…';
+    btn.setAttribute('aria-label', `Borrando ${label(node)}`);
+    try {
+      const r = await fetch('/-/delete', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({path: node.abs}),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
+      if (node.parent && node.parent.children){
+        node.parent.children = node.parent.children.filter(c => c !== node);
+      }
+      if (sharesCache) delete sharesCache[shareKeyOf(node)];
+      if (activeAbs === node.abs) showEmptyReader();
+      render();
+    } catch (err) {
+      btn.disabled = false;
+      btn.classList.remove('confirm');
+      btn.classList.add('error');
+      const text = err instanceof TypeError ? 'error: no se pudo conectar con el bridge' : (err.message || 'error');
+      btn.textContent = text;
+      btn.setAttribute('aria-label', `Error al borrar ${label(node)}: ${text}`);
+      timer = setTimeout(idle, 4000);
+    }
+  };
 }
 
 function buildNode(node, depth){
