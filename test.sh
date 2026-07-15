@@ -203,7 +203,17 @@ if [[ "$PLATFORM" == "macos" ]]; then
     grep -q 'hide .scriptorium-shares.json' "$DOTFILES/macos/scriptorium.Caddyfile"
 fi
 
-# ── 7e. macOS: triple Shift → foco a Ghostty (Hammerspoon) ───────────────────
+# ── 7e. macOS: config de Ghostty ──────────────────────────────────────────────
+if [[ "$PLATFORM" == "macos" ]]; then
+  section "macOS — Ghostty"
+  check "Ghostty instalado" test -d "/Applications/Ghostty.app"
+  check_symlink "~/.config/ghostty/config.ghostty" \
+    "$HOME/.config/ghostty/config.ghostty" "$DOTFILES/ghostty/.config/ghostty/config.ghostty"
+  check "window-save-state = always" \
+    grep -q '^window-save-state = always' "$HOME/.config/ghostty/config.ghostty"
+fi
+
+# ── 7f. macOS: triple Shift → foco a Ghostty (Hammerspoon) ───────────────────
 if [[ "$PLATFORM" == "macos" ]]; then
   section "macOS — Hammerspoon (foco Ghostty por teclado)"
   check "Hammerspoon instalado" test -d "/Applications/Hammerspoon.app"

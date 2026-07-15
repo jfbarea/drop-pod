@@ -561,6 +561,11 @@ if [[ "$PLATFORM" == "macos" ]]; then
   run_step "scriptorium-share" setup_scriptorium_share
 fi
 
+# macOS: config de Ghostty (restaura ventanas y pestañas al reabrir)
+if [[ "$PLATFORM" == "macos" ]]; then
+  run_step "stow:ghostty" safe_stow ghostty
+fi
+
 # macOS: triple Shift → foco a la última sesión de Claude en Ghostty (Hammerspoon)
 if [[ "$PLATFORM" == "macos" ]]; then
   run_step "hammerspoon" setup_hammerspoon
