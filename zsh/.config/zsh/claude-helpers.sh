@@ -14,13 +14,14 @@ claude-new() {
 # Dentro de ese árbol usa un config dir aparte (~/.claude-personal) con su
 # propio login de suscripción personal; fuera de él, la config global normal.
 claude() {
-  local personal_root="$HOME/src/fran"
-  case "$PWD/" in
+  local personal_root="${HOME:A}/src/fran"
+  case "${PWD:A}/" in
     "$personal_root"/*)
-      CLAUDE_CONFIG_DIR="$HOME/.claude-personal" command claude "$@"
-      ;;
+      CLAUDE_CONFIG_DIR="$HOME/.claude-personal" \
+      CLAUDE_CODE_OAUTH_TOKEN="$(<$HOME/.claude-personal/token)" \
+      command claude "$@" ;;
     *)
-      command claude "$@"
-      ;;
+      CLAUDE_CODE_OAUTH_TOKEN="$(<$HOME/.claude/token)" \
+      command claude "$@" ;;
   esac
 }
