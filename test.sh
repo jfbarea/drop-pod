@@ -128,6 +128,7 @@ check_symlink "~/.claude/commands/audit.md"        "$HOME/.claude/commands/audit
 check_symlink "~/.claude/commands/research.md"     "$HOME/.claude/commands/research.md"     "$DOTFILES/claudeconfig/.claude/commands/research.md"
 check_symlink "~/.claude/commands/ask.md"          "$HOME/.claude/commands/ask.md"          "$DOTFILES/claudeconfig/.claude/commands/ask.md"
 check_symlink "~/.claude/commands/commit.md"       "$HOME/.claude/commands/commit.md"       "$DOTFILES/claudeconfig/.claude/commands/commit.md"
+check_symlink "~/.claude/commands/clickup.md"      "$HOME/.claude/commands/clickup.md"      "$DOTFILES/claudeconfig/.claude/commands/clickup.md"
 check_symlink "~/.claude/commands/walkthrough.md"  "$HOME/.claude/commands/walkthrough.md"  "$DOTFILES/claudeconfig/.claude/commands/walkthrough.md"
 
 # ── 7. Permisos ───────────────────────────────────────────────────────────────
