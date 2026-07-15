@@ -52,6 +52,7 @@ echo "stdin: $INPUT" >> "$LOG"
 CWD=$(printf '%s' "$INPUT" | jq -r '.cwd // empty' 2>/dev/null)
 CWD="${CWD:-$PWD}"
 PROJECT=$(basename "$CWD")
+printf '%s' "$PROJECT" > "$HOME/.claude/hooks/last-notify"
 
 # 1) Banner local — siempre, independientemente de NTFY_TOPIC.
 notify_local "Claude Code · ${PROJECT}" "Sesión terminada en ${CWD}" "${PROJECT}"

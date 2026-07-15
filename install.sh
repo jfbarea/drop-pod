@@ -489,6 +489,18 @@ setup_scriptorium_share() {
   fi
 }
 
+setup_hammerspoon() {
+  [[ -d "/Applications/Hammerspoon.app" ]] || { err "Hammerspoon no instalado (brew bundle)"; return 1; }
+  safe_stow hammerspoon
+  if pgrep -xq Hammerspoon; then
+    ok "Hammerspoon ya en ejecución (recarga la config desde su menú si has cambiado init.lua)"
+  else
+    open -a Hammerspoon
+    ok "Hammerspoon lanzado"
+    warn "Concede permiso de Accesibilidad a Hammerspoon para que el triple Shift funcione"
+  fi
+}
+
 copy_claude_template() {
   if [[ -d "$HOME/src" && ! -f "$HOME/src/CLAUDE.md" ]]; then
     cp "$DOTFILES/templates/CLAUDE.md" "$HOME/src/CLAUDE.md"
@@ -547,6 +559,11 @@ fi
 # macOS: bridge del botón «Compartir» del scriptorium (127.0.0.1:8737)
 if [[ "$PLATFORM" == "macos" ]]; then
   run_step "scriptorium-share" setup_scriptorium_share
+fi
+
+# macOS: triple Shift → foco a la última sesión de Claude en Ghostty (Hammerspoon)
+if [[ "$PLATFORM" == "macos" ]]; then
+  run_step "hammerspoon" setup_hammerspoon
 fi
 
 # Switch dotfiles remote from HTTPS to SSH if needed

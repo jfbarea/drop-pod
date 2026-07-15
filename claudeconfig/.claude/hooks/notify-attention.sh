@@ -53,6 +53,7 @@ echo "stdin: $INPUT" >> "$LOG"
 CWD=$(printf '%s' "$INPUT" | jq -r '.cwd // empty' 2>/dev/null)
 CWD="${CWD:-$PWD}"
 PROJECT=$(basename "$CWD")
+printf '%s' "$PROJECT" > "$HOME/.claude/hooks/last-notify"
 MESSAGE=$(printf '%s' "$INPUT" | jq -r '.message // "Claude necesita tu atención"' 2>/dev/null)
 [[ -z "$MESSAGE" || "$MESSAGE" == "null" ]] && MESSAGE="Claude necesita tu atención"
 

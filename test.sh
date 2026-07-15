@@ -113,6 +113,7 @@ check_symlink "~/.claude/CLAUDE.md"            "$HOME/.claude/CLAUDE.md"        
 check_symlink "~/.claude/hooks/notify-stop.sh" "$HOME/.claude/hooks/notify-stop.sh"  "$DOTFILES/claudeconfig/.claude/hooks/notify-stop.sh"
 check_symlink "~/.claude/hooks/notify-attention.sh" "$HOME/.claude/hooks/notify-attention.sh" "$DOTFILES/claudeconfig/.claude/hooks/notify-attention.sh"
 check_symlink "~/.claude/hooks/ghostty-focus.sh" "$HOME/.claude/hooks/ghostty-focus.sh" "$DOTFILES/claudeconfig/.claude/hooks/ghostty-focus.sh"
+check_symlink "~/.claude/hooks/claude-focus-last.sh" "$HOME/.claude/hooks/claude-focus-last.sh" "$DOTFILES/claudeconfig/.claude/hooks/claude-focus-last.sh"
 check_symlink "~/.claude/agents/architect.md"  "$HOME/.claude/agents/architect.md"   "$DOTFILES/claudeconfig/.claude/agents/architect.md"
 check_symlink "~/.claude/agents/builder.md"    "$HOME/.claude/agents/builder.md"     "$DOTFILES/claudeconfig/.claude/agents/builder.md"
 check_symlink "~/.claude/agents/reviewer.md"   "$HOME/.claude/agents/reviewer.md"    "$DOTFILES/claudeconfig/.claude/agents/reviewer.md"
@@ -133,8 +134,13 @@ section "Permisos de ficheros"
 check "~/.claude/hooks/notify-stop.sh ejecutable"      test -x "$HOME/.claude/hooks/notify-stop.sh"
 check "~/.claude/hooks/notify-attention.sh ejecutable" test -x "$HOME/.claude/hooks/notify-attention.sh"
 check "~/.claude/hooks/ghostty-focus.sh ejecutable"    test -x "$HOME/.claude/hooks/ghostty-focus.sh"
+check "~/.claude/hooks/claude-focus-last.sh ejecutable" test -x "$HOME/.claude/hooks/claude-focus-last.sh"
 check "notify-stop usa alerter"      grep -q 'alerter' "$HOME/.claude/hooks/notify-stop.sh"
 check "notify-attention usa alerter" grep -q 'alerter' "$HOME/.claude/hooks/notify-attention.sh"
+check "notify-stop escribe last-notify"      grep -q 'last-notify' "$HOME/.claude/hooks/notify-stop.sh"
+check "notify-attention escribe last-notify" grep -q 'last-notify' "$HOME/.claude/hooks/notify-attention.sh"
+check "claude-focus-last cierra el banner"   grep -q 'pkill -x alerter' "$HOME/.claude/hooks/claude-focus-last.sh"
+check "claude-focus-last barre banners huérfanos" grep -q 'AXNotificationCenterAlert' "$HOME/.claude/hooks/claude-focus-last.sh"
 
 # ── 7b. macOS: LaunchAgent archive-downloads ──────────────────────────────────
 if [[ "$PLATFORM" == "macos" ]]; then
@@ -195,6 +201,17 @@ if [[ "$PLATFORM" == "macos" ]]; then
   check "Caddyfile expone la ruta /-/*" grep -q 'handle_path /-/\*' "$DOTFILES/macos/scriptorium.Caddyfile"
   check "Caddyfile oculta el mapping del listado" \
     grep -q 'hide .scriptorium-shares.json' "$DOTFILES/macos/scriptorium.Caddyfile"
+fi
+
+# ── 7e. macOS: triple Shift → foco a Ghostty (Hammerspoon) ───────────────────
+if [[ "$PLATFORM" == "macos" ]]; then
+  section "macOS — Hammerspoon (foco Ghostty por teclado)"
+  check "Hammerspoon instalado" test -d "/Applications/Hammerspoon.app"
+  check_symlink "~/.hammerspoon/init.lua" \
+    "$HOME/.hammerspoon/init.lua" "$DOTFILES/hammerspoon/.hammerspoon/init.lua"
+  check "init.lua invoca claude-focus-last.sh" \
+    grep -q 'claude-focus-last.sh' "$HOME/.hammerspoon/init.lua"
+  check "Hammerspoon en ejecución" pgrep -xq Hammerspoon
 fi
 
 # ── 8. Configuración de git ───────────────────────────────────────────────────
