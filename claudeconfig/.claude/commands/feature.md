@@ -15,7 +15,7 @@ Cada feature vive aislada en su propia carpeta `plan/<slug>/`. El fichero `plan/
 7. Cuando dé OK, ciclo builder → reviewer hasta que el hito esté DONE.
 8. Estado de la feature (`status` en `plan/<slug>/_state.json`), separado del estado por hito:
    - `BUILDING` — hay hitos por avanzar; el ciclo builder → reviewer está en marcha.
-   - `HUMAN_REVIEW` — todos los hitos están DONE y la feature espera mi revisión antes de abrirse al equipo. Ponlo tú al cerrar el último hito y avísame de que la feature queda pendiente de mi revisión (puedo pedirte un walkthrough para el scriptorium). En este estado NO avances hitos, NO abras PR y NO desactives la feature.
+   - `HUMAN_REVIEW` — todos los hitos están DONE y la feature espera mi revisión antes de abrirse al equipo. Ponlo tú al cerrar el último hito, genera el walkthrough para el scriptorium con el diff completo de la feature (instrucciones en `walkthrough.md`, junto a este fichero) y avísame de que la feature queda pendiente de mi revisión. En este estado NO avances hitos, NO abras PR y NO desactives la feature.
    - `DONE` — le he dado el visto bueno tras mi revisión; a partir de ahí la revisión pasa al equipo (PR).
    Mi feedback durante `HUMAN_REVIEW` se convierte en hitos nuevos PENDING en PLAN.md y el status vuelve a `BUILDING`.
 9. NO toques otras features: solo trabajas dentro de `plan/<slug>/`.
