@@ -517,6 +517,42 @@ setup_hammerspoon() {
   fi
 }
 
+setup_scriptorium_linux() {
+  # Equivalente Linux de setup_scriptorium: mismo servidor, pero en :8081 (el
+  # 8080 lo ocupa magos-wiki.service), arrancado por una unit de usuario de
+  # systemd en vez de un LaunchAgent, y sin el acceso por http://scriptorium
+  # (puerto 80) que en macOS montan pf + /etc/hosts.
+  local caddy_src="$DOTFILES/linux/scriptorium.Caddyfile"
+  local caddy_dst="$HOME/.config/caddy/scriptorium.Caddyfile"
+  # La plantilla de listado es agnóstica de plataforma; vive en macos/ porque es
+  # donde nació el scriptorium. Se comparte en vez de duplicarse para que no
+  # deriven dos copias.
+  local browse_src="$DOTFILES/macos/scriptorium-browse.html"
+  local browse_dst="$HOME/.config/caddy/scriptorium-browse.html"
+  local unit_src="$DOTFILES/linux/scriptorium.service"
+  local unit_dst="$HOME/.config/systemd/user/scriptorium.service"
+
+  if ! command -v caddy &>/dev/null; then
+    warn "caddy no está instalado — scriptorium no se levanta"
+    return 1
+  fi
+
+  safe_link "$caddy_src"  "$caddy_dst"
+  safe_link "$browse_src" "$browse_dst"
+  safe_link "$unit_src"   "$unit_dst"
+
+  # El caddy de usuario (:8081) y el de sistema (:80, reverse proxy en
+  # setup_local_vhosts_linux) conviven: son puertos distintos con roles
+  # distintos, no compiten.
+
+  systemctl --user daemon-reload
+  if systemctl --user enable --now scriptorium.service 2>/dev/null; then
+    ok "scriptorium.service activo (Caddy sirviendo ~/src/html en :8081)"
+  else
+    warn "No se pudo arrancar scriptorium.service (revisa: systemctl --user status scriptorium)"
+  fi
+}
+
 copy_claude_template() {
   if [[ -d "$HOME/src" && ! -f "$HOME/src/CLAUDE.md" ]]; then
     cp "$DOTFILES/templates/CLAUDE.md" "$HOME/src/CLAUDE.md"
@@ -567,9 +603,12 @@ if [[ "$PLATFORM" == "macos" ]]; then
   run_step "archive-downloads" setup_archive_downloads
 fi
 
-# macOS: servidor web local "scriptorium" (Caddy sirviendo ~/src/html en :8080)
+# Servidor web local "scriptorium" (Caddy sirviendo ~/src/html): LaunchAgent en
+# :8080 bajo macOS, unit de usuario de systemd en :8081 bajo Linux.
 if [[ "$PLATFORM" == "macos" ]]; then
   run_step "scriptorium" setup_scriptorium
+else
+  run_step "scriptorium" setup_scriptorium_linux
 fi
 
 # macOS: bridge del botón «Compartir» del scriptorium (127.0.0.1:8737)
