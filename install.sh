@@ -553,6 +553,45 @@ setup_scriptorium_linux() {
   fi
 }
 
+setup_local_vhosts_linux() {
+  # Acceso por nombre a los servidores locales desde la LAN (p. ej. el Mac):
+  #   scriptorium.ratatoskr.local -> caddy de usuario (:8081)
+  #   strategium.ratatoskr.local  -> magos-wiki       (:8080)
+  # Dos piezas: (1) resolución vía CNAMEs mDNS que siguen al hostname sin fijar
+  # IP, y (2) enrutado por Host en el caddy de sistema del :80. Ambas requieren
+  # sudo (ficheros en /etc y unit de sistema).
+  local cname_src="$DOTFILES/linux/avahi-cname-publish"
+  local cname_dst="/usr/local/bin/avahi-cname-publish"
+  local aliases_unit_src="$DOTFILES/linux/avahi-aliases.service"
+  local aliases_unit_dst="/etc/systemd/system/avahi-aliases.service"
+  local vhosts_src="$DOTFILES/linux/caddy-system.Caddyfile"
+  local vhosts_dst="/etc/caddy/Caddyfile"
+
+  if ! command -v caddy &>/dev/null; then
+    warn "caddy no está instalado — vhosts .local no configurados"
+    return 1
+  fi
+  if ! python3 -c "import dbus" 2>/dev/null; then
+    warn "python3-dbus no está instalado — alias mDNS no se publicarán"
+    return 1
+  fi
+
+  chmod +x "$cname_src"
+
+  # (1) Alias mDNS (CNAME) — unit de sistema.
+  sudo install -m 0755 "$cname_src" "$cname_dst"
+  sudo install -m 0644 "$aliases_unit_src" "$aliases_unit_dst"
+  sudo systemctl daemon-reload
+  sudo systemctl enable --now avahi-aliases.service
+  ok "avahi-aliases.service activo (CNAMEs scriptorium/strategium -> ratatoskr.local)"
+
+  # (2) Reverse proxy por Host — caddy de sistema en :80.
+  sudo install -m 0644 "$vhosts_src" "$vhosts_dst"
+  sudo systemctl enable caddy.service
+  sudo systemctl reload caddy.service 2>/dev/null || sudo systemctl restart caddy.service
+  ok "caddy de sistema enruta scriptorium.* -> :8081 y strategium.* -> :8080"
+}
+
 copy_claude_template() {
   if [[ -d "$HOME/src" && ! -f "$HOME/src/CLAUDE.md" ]]; then
     cp "$DOTFILES/templates/CLAUDE.md" "$HOME/src/CLAUDE.md"
@@ -624,6 +663,12 @@ fi
 # macOS: triple Shift → foco a la última sesión de Claude en Ghostty (Hammerspoon)
 if [[ "$PLATFORM" == "macos" ]]; then
   run_step "hammerspoon" setup_hammerspoon
+fi
+
+# Linux: acceso por nombre .local (scriptorium/strategium) vía CNAMEs mDNS +
+# reverse proxy en el caddy de sistema.
+if [[ "$PLATFORM" == "linux" ]]; then
+  run_step "local-vhosts" setup_local_vhosts_linux
 fi
 
 # Switch dotfiles remote from HTTPS to SSH if needed

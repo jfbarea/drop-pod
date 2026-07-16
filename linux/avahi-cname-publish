@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+"""Publica nombres .local extra como CNAMEs mDNS que apuntan al FQDN de esta
+máquina (p. ej. scriptorium.ratatoskr.local -> ratatoskr.local).
+
+Al ser un CNAME al hostname y no un registro A a una IP concreta, los alias
+siguen automáticamente a la máquina si su IP cambia (reflash, DHCP): no hay
+ninguna dirección escrita a mano en ninguna parte.
+
+Uso: avahi-cname-publish alias1.local [alias2.local ...]
+
+Mantiene la conexión D-Bus abierta mientras vive el proceso; Avahi retira los
+registros en cuanto la conexión se cierra, así que este script está pensado
+para correr como servicio (ver avahi-aliases.service). Si el avahi-daemon se
+reinicia, el proceso termina con error y systemd lo rearranca, republicando.
+"""
+import sys
+import time
+
+import dbus
+
+# Constantes de la API de Avahi (avahi-common/defs.h). No las exporta python3-dbus,
+# así que se replican aquí.
+IF_UNSPEC = -1
+PROTO_UNSPEC = -1
+CLASS_IN = 0x01
+TYPE_CNAME = 0x05
+TTL = 60
+
+# Estados de un EntryGroup (avahi-common/defs.h).
+ENTRY_GROUP_COLLISION = 3
+ENTRY_GROUP_FAILURE = 4
+
+
+def encode_dns_name(name):
+    """Codifica un nombre de dominio a formato wire DNS: cada etiqueta
+    precedida por su longitud, terminado en un byte nulo. Es el rdata de un
+    registro CNAME."""
+    out = bytearray()
+    for label in name.rstrip(".").split("."):
+        out.append(len(label))
+        out.extend(label.encode("ascii"))
+    out.append(0)
+    return [dbus.Byte(b) for b in out]
+
+
+def publish(aliases):
+    bus = dbus.SystemBus()
+    server = dbus.Interface(
+        bus.get_object("org.freedesktop.Avahi", "/"),
+        "org.freedesktop.Avahi.Server",
+    )
+    target = server.GetHostNameFqdn()  # p. ej. "ratatoskr.local"
+    rdata = encode_dns_name(target)
+
+    group = dbus.Interface(
+        bus.get_object("org.freedesktop.Avahi", server.EntryGroupNew()),
+        "org.freedesktop.Avahi.EntryGroup",
+    )
+    for alias in aliases:
+        group.AddRecord(
+            IF_UNSPEC, PROTO_UNSPEC, dbus.UInt32(0),
+            alias, CLASS_IN, TYPE_CNAME, TTL, rdata,
+        )
+    group.Commit()
+    print(f"Publicados {len(aliases)} CNAME -> {target}: {', '.join(aliases)}",
+          flush=True)
+    return group
+
+
+def main():
+    aliases = sys.argv[1:]
+    if not aliases:
+        sys.exit("uso: avahi-cname-publish alias1.local [alias2.local ...]")
+
+    group = publish(aliases)
+
+    # Vigila el grupo: si el daemon se cae o hay colisión de nombre, termina con
+    # error para que systemd rearranque y republique.
+    while True:
+        time.sleep(15)
+        state = group.GetState()  # lanza DBusException si el daemon desapareció
+        if state in (ENTRY_GROUP_COLLISION, ENTRY_GROUP_FAILURE):
+            sys.exit(f"EntryGroup en estado {state}; saliendo para republicar")
+
+
+if __name__ == "__main__":
+    main()

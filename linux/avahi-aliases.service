@@ -1,0 +1,19 @@
+# Publica los alias .local del scriptorium y la wiki como CNAMEs mDNS que
+# apuntan al FQDN de esta máquina (ver avahi-cname-publish). Servicio de
+# sistema porque publica nombres a nivel de host y debe correr desde el arranque
+# sin depender de que haya sesión iniciada.
+
+[Unit]
+Description=Alias mDNS (CNAME) para scriptorium y strategium
+Requires=avahi-daemon.service
+After=avahi-daemon.service
+
+[Service]
+ExecStart=/usr/local/bin/avahi-cname-publish scriptorium.ratatoskr.local strategium.ratatoskr.local
+# El script sale con error si el avahi-daemon se reinicia; systemd lo rearranca
+# y republica los CNAME.
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
