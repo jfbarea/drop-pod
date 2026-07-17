@@ -48,6 +48,8 @@ check "bat (bat o batcat)"  bash -c 'command -v bat &>/dev/null || command -v ba
 check "fd  (fd o fdfind)"   bash -c 'command -v fd  &>/dev/null || command -v fdfind  &>/dev/null'
 if [[ "$PLATFORM" == "linux" ]]; then
   check "xclip" command -v xclip
+  check "tailscale" command -v tailscale
+  check "tailscaled habilitado" systemctl is-enabled --quiet tailscaled
 fi
 if [[ "$PLATFORM" == "macos" ]]; then
   check "alerter" command -v alerter
@@ -224,6 +226,12 @@ if [[ "$PLATFORM" == "macos" ]]; then
   check "init.lua invoca claude-focus-last.sh" \
     grep -q 'claude-focus-last.sh' "$HOME/.hammerspoon/init.lua"
   check "Hammerspoon en ejecución" pgrep -xq Hammerspoon
+fi
+
+# ── 7g. macOS: Tailscale ──────────────────────────────────────────────────────
+if [[ "$PLATFORM" == "macos" ]]; then
+  section "macOS — Tailscale"
+  check "Tailscale instalado" test -d "/Applications/Tailscale.app"
 fi
 
 # ── 8. Configuración de git ───────────────────────────────────────────────────

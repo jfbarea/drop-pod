@@ -206,6 +206,22 @@ install_linux_extras() {
     ok "corepack already installed"
   fi
 
+  # tailscale — no está en los repos de Debian/Raspbian; instalador oficial,
+  # que añade el apt repo de Tailscale y deja el paquete gestionado por apt
+  if ! command -v tailscale &>/dev/null; then
+    step "Installing Tailscale..."
+    curl -fsSL https://tailscale.com/install.sh | sh
+    ok "Tailscale installed"
+  else
+    ok "Tailscale already installed"
+  fi
+  if ! systemctl is-enabled --quiet tailscaled 2>/dev/null; then
+    sudo systemctl enable --now tailscaled
+    ok "tailscaled service enabled"
+  else
+    ok "tailscaled service already enabled"
+  fi
+
   # awscli v2 — apt solo trae v1 (obsoleto); instalador oficial de AWS
   if ! command -v aws &>/dev/null; then
     step "Installing AWS CLI v2..."
@@ -594,5 +610,7 @@ echo "  Next steps:"
 echo "  1. Log out and back in so zsh becomes the active shell"
 echo "  2. Launch nvim — lazy.nvim will install plugins on first run"
 echo "  3. Edit ~/src/CLAUDE.md to customize for your projects"
+echo "  4. Tailscale: log in once (macOS: open the app; Pi: sudo tailscale up --ssh)"
+echo "     and disable key expiry for the Pi in the admin console"
 [[ -n "${BACKUP_DIR:-}" && -d "${BACKUP_DIR:-}" ]] && \
-  echo "  4. Backups of replaced files: $BACKUP_DIR"
+  echo "  5. Backups of replaced files: $BACKUP_DIR"

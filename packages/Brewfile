@@ -29,6 +29,7 @@ brew "curl"
 brew "awscli"          # AWS CLI v2
 brew "caddy"           # servidor web estático del "scriptorium" (~/src/html)
 cask "ghostty", args: { adopt: true }  # terminal; adopt: no falla si ya está instalado a mano
+cask "tailscale-app"   # tailnet personal: acceso a la Raspberry desde cualquier red
 cask "hammerspoon"     # triple Shift → foco a la sesión de Claude en Ghostty
 # Nota: alerter (notificaciones macOS con detección de clic → foco a Ghostty) no
 # tiene fórmula en Homebrew-core; lo baja install.sh de GitHub Releases a ~/.local/bin.
