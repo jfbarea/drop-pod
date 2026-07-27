@@ -258,6 +258,8 @@ check "init zoxide"                  grep -q 'zoxide init'               "$HOME/
 check "NTFY_TOPIC definido"          grep -q 'NTFY_TOPIC'                "$HOME/.zshrc"
 check "sourcea claude-helpers.sh"    grep -q 'claude-helpers.sh'         "$HOME/.zshrc"
 check "función serve definida"       grep -q '^serve()'                  "$HOME/.zshrc"
+check "JAVA_HOME (Android Studio JBR)" grep -q 'JAVA_HOME'               "$HOME/.zshrc"
+check "ANDROID_HOME en PATH"         grep -q 'ANDROID_HOME'              "$HOME/.zshrc"
 check "~/.tolkien_quotes existe"     test -f "$HOME/.tolkien_quotes"
 check "~/.motd.sh existe"            test -f "$HOME/.motd.sh"
 

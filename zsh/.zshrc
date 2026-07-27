@@ -26,6 +26,15 @@ export NVM_DIR="$HOME/.nvm"
 # ── rbenv (Ruby 2.7.6 para builds iOS / CocoaPods de revel-app) ────────────────
 command -v rbenv >/dev/null && eval "$(rbenv init - zsh)"
 
+# ── Android / Java (builds Android de revel-app) ──────────────────────────────
+if [[ -d "/Applications/Android Studio.app/Contents/jbr/Contents/Home" ]]; then
+  export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+fi
+if [[ -d "$HOME/Library/Android/sdk" ]]; then
+  export ANDROID_HOME="$HOME/Library/Android/sdk"
+  export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+fi
+
 # ── History ───────────────────────────────────────────────────────────────────
 HISTSIZE=10000
 SAVEHIST=10000
