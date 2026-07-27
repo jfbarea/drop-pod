@@ -612,5 +612,7 @@ echo "  2. Launch nvim — lazy.nvim will install plugins on first run"
 echo "  3. Edit ~/src/CLAUDE.md to customize for your projects"
 echo "  4. Tailscale: log in once (macOS: open the app; Pi: sudo tailscale up --ssh)"
 echo "     and disable key expiry for the Pi in the admin console"
+echo "     macOS: enable shields-up so nothing in the tailnet can reach this Mac:"
+echo "       /Applications/Tailscale.app/Contents/MacOS/Tailscale set --shields-up=true"
 [[ -n "${BACKUP_DIR:-}" && -d "${BACKUP_DIR:-}" ]] && \
   echo "  5. Backups of replaced files: $BACKUP_DIR"

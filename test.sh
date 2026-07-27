@@ -231,7 +231,12 @@ fi
 # ── 7g. macOS: Tailscale ──────────────────────────────────────────────────────
 if [[ "$PLATFORM" == "macos" ]]; then
   section "macOS — Tailscale"
-  check "Tailscale instalado" test -d "/Applications/Tailscale.app"
+  if [[ -d "/Applications/Tailscale.app" ]]; then
+    check "shields-up activo" \
+      bash -c '"/Applications/Tailscale.app/Contents/MacOS/Tailscale" debug prefs | jq -e ".ShieldsUp == true"'
+  else
+    skip "Tailscale" "no instalado en este Mac"
+  fi
 fi
 
 # ── 8. Configuración de git ───────────────────────────────────────────────────
