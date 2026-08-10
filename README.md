@@ -39,15 +39,29 @@ El script se encarga de todo:
 Añade estas líneas a tu `~/.zshrc` o `~/.bashrc`:
 
 ```bash
-# Claude Code — notificaciones al terminar sesión
-export NTFY_TOPIC=tu-topic-de-ntfy
-
 # Linux: symlinks de bat y fd creados por install.sh
 export PATH="$HOME/.local/bin:$PATH"
 
 # Starship prompt (si no está ya)
 eval "$(starship init bash)"   # o zsh
 ```
+
+### Secretos locales
+
+Nada que sea secreto se versiona aquí. El `.zshrc` del repo sourcea
+`~/.zshrc.local` si existe, y ese fichero nunca entra en el repo (`*.local` está
+en `.gitignore`). Créalo a mano en cada máquina con permisos `600`:
+
+```bash
+umask 077 && cat > ~/.zshrc.local <<'EOF'
+export NTFY_TOPIC=tu-topic-de-ntfy      # notificaciones de Claude Code
+export DD_APP_KEY=tu-app-key-de-datadog
+EOF
+```
+
+Los tokens de otras herramientas (`gh`, Docker, el OAuth de Claude Code) se
+quedan en el store de cada herramienta — no los centralices aquí: tendrías que
+duplicar el valor y quedaría exportado al entorno de todo proceso hijo.
 
 Luego abre `nvim` — lazy.nvim instala los plugins en el primer arranque.
 

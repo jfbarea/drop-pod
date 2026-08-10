@@ -80,11 +80,11 @@ fi
 if command -v starship &>/dev/null; then
   eval "$(starship init zsh)"
 fi
-# ── NTFY ──────────────────────────────────────────────────────────────────
-export NTFY_TOPIC=sabes-que-notificacion   # Claude Code notifications
-
 # ── Claude Code helpers ───────────────────────────────────────────────────
 #[[ -f "$HOME/.config/zsh/claude-helpers.sh" ]] && source "$HOME/.config/zsh/claude-helpers.sh"
+
+# ── Secretos locales (fuera del repo de dotfiles) ─────────────────────────
+[[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
 
 # ── Bienvenida Tolkien (toda shell interactiva fuera de tmux) ─────────────
 [[ -z "${TMUX:-}" && -f "$HOME/.motd.sh" ]] && source "$HOME/.motd.sh"

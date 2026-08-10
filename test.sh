@@ -257,13 +257,41 @@ check "carga oh-my-zsh"              grep -q 'source.*oh-my-zsh.sh'      "$HOME/
 check "~/.local/bin en PATH"         grep -q '\.local/bin'               "$HOME/.zshrc"
 check "init starship"                grep -q 'starship init'              "$HOME/.zshrc"
 check "init zoxide"                  grep -q 'zoxide init'               "$HOME/.zshrc"
-check "NTFY_TOPIC definido"          grep -q 'NTFY_TOPIC'                "$HOME/.zshrc"
 check "sourcea claude-helpers.sh"    grep -q 'claude-helpers.sh'         "$HOME/.zshrc"
 check "función serve definida"       grep -q '^serve()'                  "$HOME/.zshrc"
 check "JAVA_HOME (Android Studio JBR)" grep -q 'JAVA_HOME'               "$HOME/.zshrc"
 check "ANDROID_HOME en PATH"         grep -q 'ANDROID_HOME'              "$HOME/.zshrc"
 check "~/.tolkien_quotes existe"     test -f "$HOME/.tolkien_quotes"
 check "~/.motd.sh existe"            test -f "$HOME/.motd.sh"
+check "sourcea ~/.zshrc.local"       grep -q 'zshrc.local'               "$HOME/.zshrc"
+
+# ── 9b. Secretos locales (nunca versionados) ──────────────────────────────────
+section "Secretos locales (~/.zshrc.local)"
+zshrc_local_no_versionado() {
+  ! git -C "$DOTFILES" ls-files --error-unmatch \
+    zsh/.zshrc.local .zshrc.local &>/dev/null
+}
+zshrc_local_ignorado() {
+  git -C "$DOTFILES" check-ignore -q .zshrc.local
+}
+ntfy_topic_no_versionado() {
+  ! grep -rqE '^[[:space:]]*export[[:space:]]+NTFY_TOPIC=' "$DOTFILES/zsh/.zshrc"
+}
+check "~/.zshrc.local no está en el repo" zshrc_local_no_versionado
+check "*.local ignorado por git"          zshrc_local_ignorado
+check "NTFY_TOPIC no está en el .zshrc versionado" ntfy_topic_no_versionado
+if [[ -f "$HOME/.zshrc.local" ]]; then
+  zshrc_local_perms_600() {
+    [[ "$(stat -f '%Lp' "$HOME/.zshrc.local" 2>/dev/null \
+       || stat -c '%a' "$HOME/.zshrc.local")" == "600" ]]
+  }
+  check "~/.zshrc.local con permisos 600" zshrc_local_perms_600
+  check "~/.zshrc.local no es un symlink al repo" test ! -L "$HOME/.zshrc.local"
+  check "NTFY_TOPIC definido en ~/.zshrc.local" \
+    grep -qE '^[[:space:]]*export[[:space:]]+NTFY_TOPIC=' "$HOME/.zshrc.local"
+else
+  skip "~/.zshrc.local" "no existe en esta máquina"
+fi
 
 # ── 10. Claude Code — permisos en settings.json ───────────────────────────────
 section "Claude Code settings"
