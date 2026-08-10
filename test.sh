@@ -176,6 +176,7 @@ if [[ "$PLATFORM" == "macos" ]]; then
     "$HOME/Library/LaunchAgents/com.fran.scriptorium.plist" \
     "$DOTFILES/macos/com.fran.scriptorium.plist"
   check "plantilla browse tiene export a PDF" grep -q 'function exportPdf' "$DOTFILES/macos/scriptorium-browse.html"
+  check "plantilla browse tiene tiempo de lectura" grep -q 'function readingTime' "$DOTFILES/macos/scriptorium-browse.html"
   check "scriptorium-serve.sh ejecutable" test -x "$DOTFILES/macos/scriptorium-serve.sh"
   check "scriptorium-root-setup.sh ejecutable" test -x "$DOTFILES/macos/scriptorium-root-setup.sh"
   check "LaunchAgent scriptorium cargado" bash -c 'launchctl list | grep -q com.fran.scriptorium'

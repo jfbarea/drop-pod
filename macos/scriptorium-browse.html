@@ -636,12 +636,44 @@ function openDoc(node){
       <iframe class="frame" src="${src}" title="${node.name}"></iframe>
     </div>`;
   document.body.classList.add('reading');
+  if (isHtml(node)){
+    const fr = readerEl.querySelector('.frame');
+    fr.addEventListener('load', () => readingTime(fr));
+  }
   const b = document.getElementById('back');
   if (b) b.onclick = () => document.body.classList.remove('reading');
   const p = document.getElementById('pdf');
   if (p) p.onclick = () => exportPdf(readerEl.querySelector('.frame'));
   if (isShareable(node)) wireShare(node);
   render();
+}
+
+// Tiempo estimado de lectura, estilo Medium, inyectado dentro del artículo justo
+// debajo de su <h1> (o al principio del body si no hay). El iframe es del mismo
+// origen (lo sirve el propio Caddy), así que se cuenta el texto renderizado del
+// documento (innerText ignora scripts, estilos y nodos ocultos) antes de inyectar
+// nada. ~200 palabras/minuto, ritmo habitual de lectura en castellano. Estilos
+// inline porque el CSS de esta página no alcanza al documento del iframe; los
+// colores usan los tokens del scriptorium del propio artículo, con fallback.
+const CLOCK = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;stroke:currentColor;fill:none;flex:none"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+
+function readingTime(frame){
+  try {
+    const doc = frame.contentDocument;
+    if (!doc || !doc.body || doc.getElementById('scriptorium-rt')) return;
+    const words = (doc.body.innerText.match(/\S+/g) || []).length;
+    if (!words) return;
+    const min = Math.max(1, Math.round(words / 200));
+    const el = doc.createElement('div');
+    el.id = 'scriptorium-rt';
+    el.style.cssText = 'display:flex;align-items:center;gap:6px;margin:10px 0 18px;' +
+      'font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.02em;' +
+      'color:var(--muted,#928D82)';
+    el.innerHTML = `${CLOCK}<span>${min} min de lectura</span>`;
+    const h1 = doc.querySelector('h1');
+    if (h1) h1.insertAdjacentElement('afterend', el);
+    else doc.body.insertAdjacentElement('afterbegin', el);
+  } catch (e) {}
 }
 
 // Maquetación de impresión inyectada en el iframe antes de imprimir. Las páginas
