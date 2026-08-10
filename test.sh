@@ -145,6 +145,8 @@ check "notify-stop escribe last-notify"      grep -q 'last-notify' "$HOME/.claud
 check "notify-attention escribe last-notify" grep -q 'last-notify' "$HOME/.claude/hooks/notify-attention.sh"
 check "claude-focus-last cierra el banner"   grep -q 'pkill -x alerter' "$HOME/.claude/hooks/claude-focus-last.sh"
 check "claude-focus-last barre banners huérfanos" grep -q 'AXNotificationCenterAlert' "$HOME/.claude/hooks/claude-focus-last.sh"
+check "notify-stop honra CLAUDE_NO_NOTIFY"      grep -q 'CLAUDE_NO_NOTIFY' "$HOME/.claude/hooks/notify-stop.sh"
+check "notify-attention honra CLAUDE_NO_NOTIFY" grep -q 'CLAUDE_NO_NOTIFY' "$HOME/.claude/hooks/notify-attention.sh"
 
 # ── 7b. macOS: LaunchAgent archive-downloads ──────────────────────────────────
 if [[ "$PLATFORM" == "macos" ]]; then

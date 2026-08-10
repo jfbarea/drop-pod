@@ -88,6 +88,8 @@ Cuando termina una sesi√≥n de Claude Code, `~/.claude/hooks/notify-stop.sh` env√
 
 Requisito: tener `NTFY_TOPIC` exportado en el entorno.
 
+Para silenciar el hook en jobs desatendidos, exporta `CLAUDE_NO_NOTIFY=1` antes de invocar `claude`: los hooks salen sin notificar y sin tocar `~/.claude/hooks/last-notify`.
+
 ---
 
 ## Plantilla CLAUDE.md
