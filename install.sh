@@ -441,6 +441,25 @@ setup_archive_downloads() {
   fi
 }
 
+setup_worktree_cleanup() {
+  local script_src="$DOTFILES/macos/worktree-cleanup.sh"
+  local script_dst="$HOME/.local/bin/worktree-cleanup.sh"
+  local plist_src="$DOTFILES/macos/com.fran.worktree-cleanup.plist"
+  local plist_dst="$HOME/Library/LaunchAgents/com.fran.worktree-cleanup.plist"
+
+  chmod +x "$script_src"
+  mkdir -p "$HOME/.local/state/worktree-cleanup"
+  safe_link "$script_src" "$script_dst"
+  safe_link "$plist_src" "$plist_dst"
+
+  launchctl unload "$plist_dst" 2>/dev/null || true
+  if launchctl load -w "$plist_dst" 2>/dev/null; then
+    ok "LaunchAgent worktree-cleanup cargado (diario 03:15)"
+  else
+    warn "No se pudo cargar el LaunchAgent worktree-cleanup (¿sesión sin GUI?); se activará al iniciar sesión"
+  fi
+}
+
 setup_scriptorium() {
   # macOS-only: servidor web local que sirve ~/src/html vía Caddy en :8080,
   # mantenido vivo por un LaunchAgent (RunAtLoad + KeepAlive). El acceso por
@@ -565,6 +584,11 @@ fi
 # macOS: LaunchAgent que archiva ~/Downloads a diario
 if [[ "$PLATFORM" == "macos" ]]; then
   run_step "archive-downloads" setup_archive_downloads
+fi
+
+# macOS: LaunchAgent que limpia worktrees y ramas locales muertas a diario
+if [[ "$PLATFORM" == "macos" ]]; then
+  run_step "worktree-cleanup" setup_worktree_cleanup
 fi
 
 # macOS: servidor web local "scriptorium" (Caddy sirviendo ~/src/html en :8080)

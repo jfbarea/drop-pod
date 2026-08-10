@@ -132,6 +132,9 @@ check_symlink "~/.claude/commands/ask.md"          "$HOME/.claude/commands/ask.m
 check_symlink "~/.claude/commands/commit.md"       "$HOME/.claude/commands/commit.md"       "$DOTFILES/claudeconfig/.claude/commands/commit.md"
 check_symlink "~/.claude/commands/clickup.md"      "$HOME/.claude/commands/clickup.md"      "$DOTFILES/claudeconfig/.claude/commands/clickup.md"
 check_symlink "~/.claude/commands/walkthrough.md"  "$HOME/.claude/commands/walkthrough.md"  "$DOTFILES/claudeconfig/.claude/commands/walkthrough.md"
+check_symlink "~/.claude/skills/worktree-cleanup/SKILL.md" \
+  "$HOME/.claude/skills/worktree-cleanup/SKILL.md" \
+  "$DOTFILES/claudeconfig/.claude/skills/worktree-cleanup/SKILL.md"
 
 # ── 7. Permisos ───────────────────────────────────────────────────────────────
 section "Permisos de ficheros"
@@ -160,6 +163,57 @@ if [[ "$PLATFORM" == "macos" ]]; then
   check "script excluye el README de política" \
     grep -q "Downloads Policy.txt" "$DOTFILES/macos/archive-downloads.sh"
   check "LaunchAgent cargado" bash -c 'launchctl list | grep -q com.fran.archive-downloads'
+fi
+
+# ── 7b-bis. macOS: LaunchAgent worktree-cleanup ───────────────────────────────
+if [[ "$PLATFORM" == "macos" ]]; then
+  section "macOS — worktree-cleanup"
+  skill="$DOTFILES/claudeconfig/.claude/skills/worktree-cleanup/SKILL.md"
+  wrapper="$DOTFILES/macos/worktree-cleanup.sh"
+
+  check_symlink "~/.local/bin/worktree-cleanup.sh" \
+    "$HOME/.local/bin/worktree-cleanup.sh" "$wrapper"
+  check_symlink "~/Library/LaunchAgents/com.fran.worktree-cleanup.plist" \
+    "$HOME/Library/LaunchAgents/com.fran.worktree-cleanup.plist" \
+    "$DOTFILES/macos/com.fran.worktree-cleanup.plist"
+  check "worktree-cleanup.sh ejecutable" test -x "$wrapper"
+  check "LaunchAgent worktree-cleanup cargado" \
+    bash -c 'launchctl list | grep -q com.fran.worktree-cleanup'
+  check "directorio de estado existe" test -d "$HOME/.local/state/worktree-cleanup"
+
+  check "wrapper silencia los hooks de notificación" grep -q 'CLAUDE_NO_NOTIFY' "$wrapper"
+  check "wrapper rota los logs a 90 días"            grep -q 'RETENTION_DAYS=90' "$wrapper"
+  check "wrapper serializa con lock"                 grep -q 'LOCK_DIR' "$wrapper"
+  check "wrapper espera a que haya red"              grep -q 'api.github.com' "$wrapper"
+  check "wrapper resuelve NTFY_TOPIC"                grep -q 'resolve_ntfy_topic' "$wrapper"
+  check "wrapper calla solo con ESTADO silencioso"   grep -q 'silencioso\*' "$wrapper"
+  check "wrapper avisa si falta el informe"          grep -q 'sin escribir el informe' "$wrapper"
+  check "wrapper no escribe en ~/.claude"     bash -c '! grep -q "claude/logs" "'"$wrapper"'"'
+  check "wrapper tolera bash 3.2 sin timeout"        grep -q 'runner=(env)' "$wrapper"
+  wrapper_runs_on_bash32() { /bin/bash -n "$wrapper"; }
+  check "wrapper parsea con /bin/bash 3.2" wrapper_runs_on_bash32
+  check "wrapper busca el topic en ~/.zshrc.local" grep -q 'zshrc.local' "$wrapper"
+  ntfy_topic_resuelve() {
+    local fn t
+    fn="$(sed -n '/^resolve_ntfy_topic()/,/^}/p' "$wrapper")"
+    [[ -n "$fn" ]] || return 1
+    t="$(unset NTFY_TOPIC; eval "$fn"; resolve_ntfy_topic)"
+    [[ -n "$t" ]]
+  }
+  check "resolve_ntfy_topic devuelve un topic" ntfy_topic_resuelve
+
+  check "skill clasifica el merge con gh pr list"    grep -q 'gh pr list' "$skill"
+  check "skill hace fetch --prune antes de decidir"  grep -q 'fetch --prune origin' "$skill"
+  check "skill vuelca la red de seguridad"           grep -q 'deleted-branches-' "$skill"
+  check "skill protege el checkout principal"        grep -q 'Nunca borres el checkout principal' "$skill"
+  check "skill prohíbe git stash"                    grep -q 'Nunca uses .git stash' "$skill"
+  check "skill deja intactos los worktrees sucios"   grep -q 'lo toques automáticamente' "$skill"
+  check "skill no emite veredictos de borrabilidad"  grep -q 'No emitas veredictos de borrabilidad' "$skill"
+  check "skill emite la cabecera ESTADO"             grep -q 'ESTADO: requiere-decision' "$skill"
+  check "skill contempla el estado silencioso"       grep -q 'ESTADO: silencioso' "$skill"
+  check "skill escribe siempre el informe"           grep -q 'Escribe siempre el informe' "$skill"
+  check "skill escribe fuera de ~/.claude"    bash -c '! grep -q "claude/logs" "'"$skill"'"'
+  check "skill lista los repos configurables"        grep -q 'src/revel/revel-app|development' "$skill"
 fi
 
 # ── 7c. macOS: servidor web scriptorium ─────────────────────────────────────

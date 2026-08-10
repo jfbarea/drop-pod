@@ -106,6 +106,20 @@ Para silenciar el hook en jobs desatendidos, exporta `CLAUDE_NO_NOTIFY=1` antes 
 
 ---
 
+## Limpieza diaria de worktrees (macOS)
+
+`com.fran.worktree-cleanup` (03:15) barre los git worktrees y las ramas locales muertas de los repos configurados. El procedimiento vive en el skill `claudeconfig/.claude/skills/worktree-cleanup/SKILL.md`; `macos/worktree-cleanup.sh` es solo el wrapper que lo ejecuta headless (`claude -p /worktree-cleanup`).
+
+- **Repos a barrer:** el array `REPOS` al principio del `SKILL.md`, en formato `ruta|rama-de-integración`. Para añadir un repo, una línea más.
+- **Qué borra sin preguntar:** worktrees limpios cuya PR está `MERGED` en GitHub, y sus ramas. El merge se clasifica con `gh pr list`, no con `git branch --merged`: los repos con squash merge dan falsos negativos.
+- **Qué no toca nunca:** el checkout principal, worktrees con cambios sin commitear, worktrees con procesos vivos dentro, ramas con PR cerrada sin mergear, ramas nunca pusheadas. Tampoco hace `push`, `commit`, `stash`, `clean` ni `reset`.
+- **Red de seguridad:** antes de borrar vuelca `<sha> <repo> <rama>` a `~/.local/state/worktree-cleanup/deleted-branches-<fecha>.txt`. Para resucitar: `git branch <nombre> <sha>`.
+- **Informe:** `~/.local/state/worktree-cleanup/report-<fecha>.md`. El informe se escribe siempre; su primera línea (`ESTADO: requiere-decision|informativo|silencioso`) decide si hay push a ntfy y con qué prioridad. Con `silencioso` no llega nada. Si el informe **falta**, el wrapper lo trata como fallo y avisa: sin informe no hay rastro de lo que hizo. Los logs se rotan a los 90 días.
+- **Nada vive bajo `~/.claude/`:** el harness protege ese directorio y la escritura se deniega en una ejecución desatendida, sin error visible.
+- **A mano:** `worktree-cleanup.sh --dry-run` clasifica e informa sin borrar nada. Log de ejecuciones en `run.log`, salida cruda en `last-run-output.txt`.
+
+---
+
 ## Plantilla CLAUDE.md
 
 `templates/CLAUDE.md` es una plantilla comentada para colocar en `~/src/CLAUDE.md`. Claude Code la carga automáticamente para todos tus proyectos bajo `~/src/`. `install.sh` la copia si `~/src/` existe y no hay ya un `CLAUDE.md`.
@@ -133,11 +147,15 @@ dotfiles/
 │       │   ├── architect.md
 │       │   ├── builder.md
 │       │   └── reviewer.md
-│       └── commands/
-│           ├── scaffold.md
-│           ├── feature.md
-│           ├── quick.md
-│           └── milestone-run.md
+│       ├── commands/
+│       │   ├── scaffold.md
+│       │   ├── feature.md
+│       │   ├── quick.md
+│       │   └── milestone-run.md
+│       └── skills/
+│           └── worktree-cleanup/
+│               └── SKILL.md
+├── macos/                      # LaunchAgents + scripts (scriptorium, jobs diarios)
 ├── templates/
 │   └── CLAUDE.md
 ├── packages/
