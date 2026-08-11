@@ -132,6 +132,11 @@ check_symlink "~/.claude/commands/ask.md"          "$HOME/.claude/commands/ask.m
 check_symlink "~/.claude/commands/commit.md"       "$HOME/.claude/commands/commit.md"       "$DOTFILES/claudeconfig/.claude/commands/commit.md"
 check_symlink "~/.claude/commands/clickup.md"      "$HOME/.claude/commands/clickup.md"      "$DOTFILES/claudeconfig/.claude/commands/clickup.md"
 check_symlink "~/.claude/commands/walkthrough.md"  "$HOME/.claude/commands/walkthrough.md"  "$DOTFILES/claudeconfig/.claude/commands/walkthrough.md"
+check_symlink "~/.claude/commands/code-review-scriptorium.md" \
+  "$HOME/.claude/commands/code-review-scriptorium.md" \
+  "$DOTFILES/claudeconfig/.claude/commands/code-review-scriptorium.md"
+check "/code-review built-in sin sombrear" \
+  bash -c "[[ ! -e '$HOME/.claude/commands/code-review.md' && ! -L '$HOME/.claude/commands/code-review.md' ]]"
 check_symlink "~/.claude/skills/worktree-cleanup/SKILL.md" \
   "$HOME/.claude/skills/worktree-cleanup/SKILL.md" \
   "$DOTFILES/claudeconfig/.claude/skills/worktree-cleanup/SKILL.md"
