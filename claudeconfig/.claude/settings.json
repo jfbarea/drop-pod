@@ -117,5 +117,9 @@
   },
   "theme": "dark",
   "preferredNotifChannel": "ghostty",
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "statusLine": {
+    "type": "command",
+    "command": "sh \"$HOME/.claude/statusline.sh\""
+  }
 }

@@ -112,6 +112,7 @@ check_symlink "~/.hushlogin"                   "$HOME/.hushlogin"               
 check_symlink "~/.config/zsh/claude-helpers.sh" "$HOME/.config/zsh/claude-helpers.sh" "$DOTFILES/zsh/.config/zsh/claude-helpers.sh"
 check_symlink "~/.claude/settings.json"        "$HOME/.claude/settings.json"         "$DOTFILES/claudeconfig/.claude/settings.json"
 check_symlink "~/.claude/CLAUDE.md"            "$HOME/.claude/CLAUDE.md"             "$DOTFILES/claudeconfig/.claude/CLAUDE.md"
+check_symlink "~/.claude/statusline.sh"        "$HOME/.claude/statusline.sh"         "$DOTFILES/claudeconfig/.claude/statusline.sh"
 check_symlink "~/.claude/hooks/notify-stop.sh" "$HOME/.claude/hooks/notify-stop.sh"  "$DOTFILES/claudeconfig/.claude/hooks/notify-stop.sh"
 check_symlink "~/.claude/hooks/notify-attention.sh" "$HOME/.claude/hooks/notify-attention.sh" "$DOTFILES/claudeconfig/.claude/hooks/notify-attention.sh"
 check_symlink "~/.claude/hooks/ghostty-focus.sh" "$HOME/.claude/hooks/ghostty-focus.sh" "$DOTFILES/claudeconfig/.claude/hooks/ghostty-focus.sh"
@@ -366,6 +367,18 @@ check "claude-new disponible en shell" bash -c 'source "$HOME/.config/zsh/claude
 check "función claude (cuenta personal)" bash -c 'source "$HOME/.config/zsh/claude-helpers.sh" 2>/dev/null && declare -f claude &>/dev/null'
 check "deny de git push"               jq -e '.permissions.deny | index("Bash(git push:*)")' "$claude_settings"
 check "hook PreToolUse bloquea push"   jq -e '.hooks.PreToolUse[] | select(.matcher=="Bash") | .hooks[] | select(.type=="command") | .command | test("push")' "$claude_settings"
+check "statusLine configurado"         jq -e '.statusLine.type == "command"' "$claude_settings"
+check "statusLine apunta a statusline.sh" \
+  bash -c "jq -r '.statusLine.command' '$claude_settings' | grep -q 'statusline.sh'"
+check "statusline.sh es ejecutable"    test -x "$DOTFILES/claudeconfig/.claude/statusline.sh"
+check "statusline.sh usa --no-optional-locks en git" \
+  grep -q -- '--no-optional-locks' "$DOTFILES/claudeconfig/.claude/statusline.sh"
+check "statusline.sh muestra contexto" \
+  grep -q 'context_window' "$DOTFILES/claudeconfig/.claude/statusline.sh"
+check "statusline.sh muestra rate limits" \
+  grep -q 'rate_limits' "$DOTFILES/claudeconfig/.claude/statusline.sh"
+check "statusline.sh renderiza sin errores" \
+  bash -c "echo '{\"cwd\":\"\$HOME\",\"model\":{\"display_name\":\"test\"},\"context_window\":{\"used_percentage\":5,\"total_input_tokens\":50000,\"context_window_size\":1000000},\"rate_limits\":{\"five_hour\":{\"used_percentage\":10},\"seven_day\":{\"used_percentage\":20}}}' | sh '$DOTFILES/claudeconfig/.claude/statusline.sh' | grep -q 'ctx 5%'"
 
 # ── 11. Remote del repo de dotfiles ───────────────────────────────────────────
 section "Remote de dotfiles"
