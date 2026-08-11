@@ -146,12 +146,16 @@ dotfiles/
 │       ├── agents/
 │       │   ├── architect.md
 │       │   ├── builder.md
-│       │   └── reviewer.md
+│       │   ├── reviewer.md
+│       │   ├── debugger.md
+│       │   └── auditor.md
 │       ├── commands/
 │       │   ├── scaffold.md
+│       │   ├── research.md
+│       │   ├── specs.md
 │       │   ├── feature.md
 │       │   ├── quick.md
-│       │   └── milestone-run.md
+│       │   └── …
 │       └── skills/
 │           └── worktree-cleanup/
 │               └── SKILL.md
@@ -167,15 +171,27 @@ dotfiles/
 
 ## Claude Code multi-agent setup
 
-Tres comandos disponibles globalmente en cualquier sesión de Claude Code:
+Comandos disponibles globalmente en cualquier sesión de Claude Code:
 
 | Comando | Cuándo usarlo |
 |---|---|
 | `/scaffold` | Proyecto nuevo desde cero (greenfield): crea SPEC.md, plan y cicla hitos |
-| `/feature` | Añadir una feature a un repo existente sin tocar el plan actual |
+| `/research` | El problema está abierto: explora opciones y trade-offs antes de decidir |
+| `/specs` | Especificación detallada a base de preguntas, una a una. Puerta obligatoria antes de `/feature` |
+| `/feature` | Implementa una feature ya especificada en un repo existente |
+| `/milestone-run` | Avanza un ciclo de hito suelto (bajo nivel; normalmente se prefiere `/feature`) |
 | `/quick` | Bugfix puntual, pregunta rápida o cambio pequeño sin crear estado |
+| `/debug` | Bug conocido: reproducir, causa raíz, fix y verificación |
+| `/audit` | Revisión proactiva del proyecto en busca de bugs |
+| `/code-review-scriptorium` | Code review con el motor built-in y el informe completo en el scriptorium |
+| `/walkthrough` | Recorrido diff a diff de un cambio o PR, en HTML, para el scriptorium |
+| `/ask` | Dudas sobre el repo. Solo lectura |
+| `/clickup` | Lee un issue de ClickUp por su URL y lo implementa |
+| `/commit` | Trocea lo que hay sin commitear en commits atómicos |
 
-Internamente los comandos delegan en tres subagentes (`architect`, `builder`, `reviewer`) que se coordinan automáticamente.
+La cadena para trabajo nuevo es **`/research` (opcional) → `/specs` → `/feature`**: primero se decide qué opción se toma, luego qué se construye exactamente, y solo entonces se implementa. `/feature` se niega a arrancar sin una spec en `APPROVED`.
+
+Internamente los comandos delegan en cinco subagentes (`architect`, `builder`, `reviewer`, `debugger`, `auditor`) que se coordinan automáticamente.
 
 ### Instalación
 
@@ -198,9 +214,12 @@ Los ficheros quedan en:
 ~/.claude/agents/builder.md
 ~/.claude/agents/reviewer.md
 ~/.claude/commands/scaffold.md
+~/.claude/commands/research.md
+~/.claude/commands/specs.md
 ~/.claude/commands/feature.md
 ~/.claude/commands/quick.md
 ~/.claude/commands/milestone-run.md
+…
 ```
 
 ### Helper de shell: `claude-new`
