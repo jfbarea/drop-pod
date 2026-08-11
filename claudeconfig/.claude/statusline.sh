@@ -2,8 +2,8 @@
 
 input=$(cat)
 
-TAB=$(printf '\t')
-IFS="$TAB" read -r cwd model ctx_pct ctx_used ctx_size rl5 rl7 <<EOF
+SEP=$(printf '\037')
+IFS="$SEP" read -r cwd model ctx_pct ctx_used ctx_size rl5 rl5_reset rl7 rl7_reset <<EOF
 $(printf '%s' "$input" | jq -r '[
   (.workspace.current_dir // .cwd // ""),
   (.model.display_name // ""),
@@ -11,9 +11,13 @@ $(printf '%s' "$input" | jq -r '[
   (.context_window.total_input_tokens // -1),
   (.context_window.context_window_size // -1),
   (.rate_limits.five_hour.used_percentage // -1),
-  (.rate_limits.seven_day.used_percentage // -1)
-] | @tsv')
+  (.rate_limits.five_hour.resets_at // -1),
+  (.rate_limits.seven_day.used_percentage // -1),
+  (.rate_limits.seven_day.resets_at // -1)
+] | map(tostring) | join("\u001f")')
 EOF
+
+now=$(date +%s)
 
 esc=$(printf '\033')
 reset="${esc}[0m"
@@ -21,14 +25,40 @@ dim_cyan="${esc}[2;36m"
 dim_magenta="${esc}[2;35m"
 dim_yellow="${esc}[2;33m"
 dim_gray="${esc}[2;37m"
+ok="${esc}[32m"
 warn="${esc}[33m"
-crit="${esc}[31m"
+crit="${esc}[1;31m"
 
 pct_color() {
   if [ "$1" -ge 80 ]; then printf '%s' "$crit"
   elif [ "$1" -ge 60 ]; then printf '%s' "$warn"
-  else printf '%s' "$dim_gray"
+  else printf '%s' "$ok"
   fi
+}
+
+elapsed_pct() {
+  resets_at=$1
+  window=$2
+  case "$resets_at" in ''|*[!0-9]*) return 1 ;; esac
+  [ "$resets_at" -le 0 ] && return 1
+  started=$((resets_at - window))
+  gone=$((now - started))
+  [ "$gone" -lt 0 ] && gone=0
+  [ "$gone" -gt "$window" ] && gone=$window
+  printf '%d' $((gone * 100 / window))
+}
+
+rate_block() {
+  label=$1
+  quota=$2
+  resets_at=$3
+  window=$4
+  [ "$quota" -ge 0 ] 2>/dev/null || return 1
+  block="${dim_gray}${label}${reset} $(pct_color "$quota")▰${quota}%${reset}"
+  if t=$(elapsed_pct "$resets_at" "$window"); then
+    block="${block} ${dim_gray}◷${t}%${reset}"
+  fi
+  printf '%s' "$block"
 }
 
 fmt_tokens() {
@@ -111,12 +141,12 @@ if [ "$ctx_pct" -ge 0 ] 2>/dev/null; then
 fi
 
 rl=""
-if [ "$rl5" -ge 0 ] 2>/dev/null; then
-  rl="$(pct_color "$rl5")5h ${rl5}%${reset}"
+if b=$(rate_block 5h "$rl5" "$rl5_reset" 18000); then
+  rl="$b"
 fi
-if [ "$rl7" -ge 0 ] 2>/dev/null; then
+if b=$(rate_block 7d "$rl7" "$rl7_reset" 604800); then
   [ -n "$rl" ] && rl="${rl}${dim_gray} · ${reset}"
-  rl="${rl}$(pct_color "$rl7")7d ${rl7}%${reset}"
+  rl="${rl}${b}"
 fi
 [ -n "$rl" ] && line="${line} ${dim_gray}·${reset} ${rl}"
 
