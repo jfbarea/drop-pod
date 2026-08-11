@@ -36,6 +36,15 @@ pct_color() {
   fi
 }
 
+gauge() {
+  if [ "$1" -ge 85 ]; then printf '●'
+  elif [ "$1" -ge 60 ]; then printf '◕'
+  elif [ "$1" -ge 35 ]; then printf '◑'
+  elif [ "$1" -ge 10 ]; then printf '◔'
+  else printf '○'
+  fi
+}
+
 elapsed_pct() {
   resets_at=$1
   window=$2
@@ -54,7 +63,7 @@ rate_block() {
   resets_at=$3
   window=$4
   [ "$quota" -ge 0 ] 2>/dev/null || return 1
-  block="${dim_gray}${label}${reset} $(pct_color "$quota")▰${quota}%${reset}"
+  block="${dim_gray}${label}${reset} $(pct_color "$quota")$(gauge "$quota")${quota}%${reset}"
   if t=$(elapsed_pct "$resets_at" "$window"); then
     block="${block} ${dim_gray}◷${t}%${reset}"
   fi
