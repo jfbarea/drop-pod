@@ -147,6 +147,7 @@ check_symlink "~/.claude/skills/worktree-cleanup/SKILL.md" \
 # ── 6b. Cadena de comandos de feature ────────────────────────────────────────
 section "Cadena de comandos de feature"
 specs_cmd="$DOTFILES/claudeconfig/.claude/commands/specs.md"
+feature_cmd="$DOTFILES/claudeconfig/.claude/commands/feature.md"
 check "/specs escribe la fuente de verdad en plan/specs/" \
   grep -q 'plan/specs/<slug>.md' "$specs_cmd"
 check "/specs pregunta de una en una" \
@@ -155,6 +156,12 @@ check "/specs no se aprueba a sí misma" \
   grep -q 'nunca te apruebes tu propia spec' "$specs_cmd"
 check "/specs renderiza al scriptorium" \
   grep -q 'src/html/<repo-name>/spec-<slug>.html' "$specs_cmd"
+check "/feature exige spec APPROVED" \
+  grep -q 'status: APPROVED' "$feature_cmd"
+check "/feature no inventa el alcance" \
+  grep -q 'para y dime que hay que pasar por `/specs`' "$feature_cmd"
+check "/feature deriva hitos de los criterios de la spec" \
+  grep -q 'derivados de los criterios de aceptación de la spec' "$feature_cmd"
 
 # ── 7. Permisos ───────────────────────────────────────────────────────────────
 section "Permisos de ficheros"
