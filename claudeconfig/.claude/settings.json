@@ -29,9 +29,8 @@
       "Bash(cargo publish)",
       "Bash(cargo publish *)",
       "Bash(gem push *)",
-      "Bash(git push)",
-      "Bash(git push *)",
-      "Bash(git push:*)",
+      "Bash(git push --all *)",
+      "Bash(git push --mirror *)",
       "Bash(aws ec2 run-instances *)",
       "Bash(aws rds create-db-instance *)",
       "Bash(aws lambda create-function *)",
@@ -71,7 +70,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cmd=$(jq -r '.tool_input.command // \"\"'); if printf '%s' \"$cmd\" | grep -Eq '(^|[^[:alnum:]_./-])git(([[:space:]]+-C[[:space:]]+[^[:space:]]+)|([[:space:]]+-c[[:space:]]+[^[:space:]]+)|([[:space:]]+--?[^[:space:]]+))*[[:space:]]+push([[:space:]]|$)'; then printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"git push prohibido: todos los push son manuales (politica del usuario). Hazlo tu mismo.\"}}'; fi"
+            "command": "~/.claude/hooks/block-protected-push.sh"
           }
         ]
       }
@@ -100,7 +99,8 @@
     ]
   },
   "enabledPlugins": {
-    "codex@openai-codex": true
+    "codex@openai-codex": true,
+    "clangd-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "openai-codex": {
@@ -113,5 +113,9 @@
   "tui": "fullscreen",
   "theme": "dark",
   "preferredNotifChannel": "ghostty",
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "statusLine": {
+    "type": "command",
+    "command": "sh \"$HOME/.claude/statusline.sh\""
+  }
 }

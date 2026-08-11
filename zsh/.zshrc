@@ -26,6 +26,15 @@ export NVM_DIR="$HOME/.nvm"
 # ── rbenv (Ruby 2.7.6 para builds iOS / CocoaPods de revel-app) ────────────────
 command -v rbenv >/dev/null && eval "$(rbenv init - zsh)"
 
+# ── Android / Java (builds Android de revel-app) ──────────────────────────────
+if [[ -d "/Applications/Android Studio.app/Contents/jbr/Contents/Home" ]]; then
+  export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+fi
+if [[ -d "$HOME/Library/Android/sdk" ]]; then
+  export ANDROID_HOME="$HOME/Library/Android/sdk"
+  export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+fi
+
 # ── History ───────────────────────────────────────────────────────────────────
 HISTSIZE=10000
 SAVEHIST=10000
@@ -71,11 +80,11 @@ fi
 if command -v starship &>/dev/null; then
   eval "$(starship init zsh)"
 fi
-# ── NTFY ──────────────────────────────────────────────────────────────────
-export NTFY_TOPIC=sabes-que-notificacion   # Claude Code notifications
-
 # ── Claude Code helpers ───────────────────────────────────────────────────
 #[[ -f "$HOME/.config/zsh/claude-helpers.sh" ]] && source "$HOME/.config/zsh/claude-helpers.sh"
+
+# ── Secretos locales (fuera del repo de dotfiles) ─────────────────────────
+[[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
 
 # ── Bienvenida Tolkien (toda shell interactiva fuera de tmux) ─────────────
 [[ -z "${TMUX:-}" && -f "$HOME/.motd.sh" ]] && source "$HOME/.motd.sh"

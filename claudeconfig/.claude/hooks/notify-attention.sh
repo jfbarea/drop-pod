@@ -8,6 +8,11 @@
 LOG="$HOME/.claude/hooks/notify-attention.log"
 mkdir -p "$(dirname "$LOG")"
 
+if [[ -n "${CLAUDE_NO_NOTIFY:-}" ]]; then
+  echo "$(date -Iseconds) skip: CLAUDE_NO_NOTIFY" >> "$LOG"
+  exit 0
+fi
+
 # Banner nativo local. Pasa título/cuerpo por argv para evitar escapado/inyección.
 # En macOS usa alerter (terminal-notifier 2.0.0 ya no registra su bundle en macOS
 # reciente y descarta los banners en silencio). alerter es bloqueante y reporta la

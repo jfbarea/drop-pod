@@ -1,5 +1,8 @@
 .DS_Store
 *.swp
 *.swo
+*.local
+.env
+.env.*
 /.claude/*
 !/.claude/settings.json

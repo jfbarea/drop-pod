@@ -39,15 +39,29 @@ El script se encarga de todo:
 Añade estas líneas a tu `~/.zshrc` o `~/.bashrc`:
 
 ```bash
-# Claude Code — notificaciones al terminar sesión
-export NTFY_TOPIC=tu-topic-de-ntfy
-
 # Linux: symlinks de bat y fd creados por install.sh
 export PATH="$HOME/.local/bin:$PATH"
 
 # Starship prompt (si no está ya)
 eval "$(starship init bash)"   # o zsh
 ```
+
+### Secretos locales
+
+Nada que sea secreto se versiona aquí. El `.zshrc` del repo sourcea
+`~/.zshrc.local` si existe, y ese fichero nunca entra en el repo (`*.local` está
+en `.gitignore`). Créalo a mano en cada máquina con permisos `600`:
+
+```bash
+umask 077 && cat > ~/.zshrc.local <<'EOF'
+export NTFY_TOPIC=tu-topic-de-ntfy      # notificaciones de Claude Code
+export DD_APP_KEY=tu-app-key-de-datadog
+EOF
+```
+
+Los tokens de otras herramientas (`gh`, Docker, el OAuth de Claude Code) se
+quedan en el store de cada herramienta — no los centralices aquí: tendrías que
+duplicar el valor y quedaría exportado al entorno de todo proceso hijo.
 
 Luego abre `nvim` — lazy.nvim instala los plugins en el primer arranque.
 
@@ -88,6 +102,22 @@ Cuando termina una sesión de Claude Code, `~/.claude/hooks/notify-stop.sh` env�
 
 Requisito: tener `NTFY_TOPIC` exportado en el entorno.
 
+Para silenciar el hook en jobs desatendidos, exporta `CLAUDE_NO_NOTIFY=1` antes de invocar `claude`: los hooks salen sin notificar y sin tocar `~/.claude/hooks/last-notify`.
+
+---
+
+## Limpieza diaria de worktrees (macOS)
+
+`com.fran.worktree-cleanup` (03:15) barre los git worktrees y las ramas locales muertas de los repos configurados. El procedimiento vive en el skill `claudeconfig/.claude/skills/worktree-cleanup/SKILL.md`; `macos/worktree-cleanup.sh` es solo el wrapper que lo ejecuta headless (`claude -p /worktree-cleanup`).
+
+- **Repos a barrer:** el array `REPOS` al principio del `SKILL.md`, en formato `ruta|rama-de-integración`. Para añadir un repo, una línea más.
+- **Qué borra sin preguntar:** worktrees limpios cuya PR está `MERGED` en GitHub, y sus ramas. El merge se clasifica con `gh pr list`, no con `git branch --merged`: los repos con squash merge dan falsos negativos.
+- **Qué no toca nunca:** el checkout principal, worktrees con cambios sin commitear, worktrees con procesos vivos dentro, ramas con PR cerrada sin mergear, ramas nunca pusheadas. Tampoco hace `push`, `commit`, `stash`, `clean` ni `reset`.
+- **Red de seguridad:** antes de borrar vuelca `<sha> <repo> <rama>` a `~/.local/state/worktree-cleanup/deleted-branches-<fecha>.txt`. Para resucitar: `git branch <nombre> <sha>`.
+- **Informe:** `~/.local/state/worktree-cleanup/report-<fecha>.md`. El informe se escribe siempre; su primera línea (`ESTADO: requiere-decision|informativo|silencioso`) decide si hay push a ntfy y con qué prioridad. Con `silencioso` no llega nada. Si el informe **falta**, el wrapper lo trata como fallo y avisa: sin informe no hay rastro de lo que hizo. Los logs se rotan a los 90 días.
+- **Nada vive bajo `~/.claude/`:** el harness protege ese directorio y la escritura se deniega en una ejecución desatendida, sin error visible.
+- **A mano:** `worktree-cleanup.sh --dry-run` clasifica e informa sin borrar nada. Log de ejecuciones en `run.log`, salida cruda en `last-run-output.txt`.
+
 ---
 
 ## Plantilla CLAUDE.md
@@ -116,12 +146,20 @@ dotfiles/
 │       ├── agents/
 │       │   ├── architect.md
 │       │   ├── builder.md
-│       │   └── reviewer.md
-│       └── commands/
-│           ├── scaffold.md
-│           ├── feature.md
-│           ├── quick.md
-│           └── milestone-run.md
+│       │   ├── reviewer.md
+│       │   ├── debugger.md
+│       │   └── auditor.md
+│       ├── commands/
+│       │   ├── scaffold.md
+│       │   ├── research.md
+│       │   ├── specs.md
+│       │   ├── feature.md
+│       │   ├── quick.md
+│       │   └── …
+│       └── skills/
+│           └── worktree-cleanup/
+│               └── SKILL.md
+├── macos/                      # LaunchAgents + scripts (scriptorium, jobs diarios)
 ├── templates/
 │   └── CLAUDE.md
 ├── packages/
@@ -133,15 +171,27 @@ dotfiles/
 
 ## Claude Code multi-agent setup
 
-Tres comandos disponibles globalmente en cualquier sesión de Claude Code:
+Comandos disponibles globalmente en cualquier sesión de Claude Code:
 
 | Comando | Cuándo usarlo |
 |---|---|
 | `/scaffold` | Proyecto nuevo desde cero (greenfield): crea SPEC.md, plan y cicla hitos |
-| `/feature` | Añadir una feature a un repo existente sin tocar el plan actual |
+| `/research` | El problema está abierto: explora opciones y trade-offs antes de decidir |
+| `/specs` | Especificación detallada a base de preguntas, una a una. Puerta obligatoria antes de `/feature` |
+| `/feature` | Implementa una feature ya especificada en un repo existente |
+| `/milestone-run` | Avanza un ciclo de hito suelto (bajo nivel; normalmente se prefiere `/feature`) |
 | `/quick` | Bugfix puntual, pregunta rápida o cambio pequeño sin crear estado |
+| `/debug` | Bug conocido: reproducir, causa raíz, fix y verificación |
+| `/audit` | Revisión proactiva del proyecto en busca de bugs |
+| `/code-review-scriptorium` | Code review con el motor built-in y el informe completo en el scriptorium |
+| `/walkthrough` | Recorrido diff a diff de un cambio o PR, en HTML, para el scriptorium |
+| `/ask` | Dudas sobre el repo. Solo lectura |
+| `/clickup` | Lee un issue de ClickUp por su URL y lo implementa |
+| `/commit` | Trocea lo que hay sin commitear en commits atómicos |
 
-Internamente los comandos delegan en tres subagentes (`architect`, `builder`, `reviewer`) que se coordinan automáticamente.
+La cadena para trabajo nuevo es **`/research` (opcional) → `/specs` → `/feature`**: primero se decide qué opción se toma, luego qué se construye exactamente, y solo entonces se implementa. `/feature` se niega a arrancar sin una spec en `APPROVED`.
+
+Internamente los comandos delegan en cinco subagentes (`architect`, `builder`, `reviewer`, `debugger`, `auditor`) que se coordinan automáticamente.
 
 ### Instalación
 
@@ -164,9 +214,12 @@ Los ficheros quedan en:
 ~/.claude/agents/builder.md
 ~/.claude/agents/reviewer.md
 ~/.claude/commands/scaffold.md
+~/.claude/commands/research.md
+~/.claude/commands/specs.md
 ~/.claude/commands/feature.md
 ~/.claude/commands/quick.md
 ~/.claude/commands/milestone-run.md
+…
 ```
 
 ### Helper de shell: `claude-new`
