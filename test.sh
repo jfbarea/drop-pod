@@ -117,6 +117,7 @@ check_symlink "~/.claude/hooks/notify-stop.sh" "$HOME/.claude/hooks/notify-stop.
 check_symlink "~/.claude/hooks/notify-attention.sh" "$HOME/.claude/hooks/notify-attention.sh" "$DOTFILES/claudeconfig/.claude/hooks/notify-attention.sh"
 check_symlink "~/.claude/hooks/ghostty-focus.sh" "$HOME/.claude/hooks/ghostty-focus.sh" "$DOTFILES/claudeconfig/.claude/hooks/ghostty-focus.sh"
 check_symlink "~/.claude/hooks/claude-focus-last.sh" "$HOME/.claude/hooks/claude-focus-last.sh" "$DOTFILES/claudeconfig/.claude/hooks/claude-focus-last.sh"
+check_symlink "~/.claude/hooks/block-protected-push.sh" "$HOME/.claude/hooks/block-protected-push.sh" "$DOTFILES/claudeconfig/.claude/hooks/block-protected-push.sh"
 check_symlink "~/.claude/agents/architect.md"  "$HOME/.claude/agents/architect.md"   "$DOTFILES/claudeconfig/.claude/agents/architect.md"
 check_symlink "~/.claude/agents/builder.md"    "$HOME/.claude/agents/builder.md"     "$DOTFILES/claudeconfig/.claude/agents/builder.md"
 check_symlink "~/.claude/agents/reviewer.md"   "$HOME/.claude/agents/reviewer.md"    "$DOTFILES/claudeconfig/.claude/agents/reviewer.md"
@@ -148,6 +149,7 @@ check "~/.claude/hooks/notify-stop.sh ejecutable"      test -x "$HOME/.claude/ho
 check "~/.claude/hooks/notify-attention.sh ejecutable" test -x "$HOME/.claude/hooks/notify-attention.sh"
 check "~/.claude/hooks/ghostty-focus.sh ejecutable"    test -x "$HOME/.claude/hooks/ghostty-focus.sh"
 check "~/.claude/hooks/claude-focus-last.sh ejecutable" test -x "$HOME/.claude/hooks/claude-focus-last.sh"
+check "~/.claude/hooks/block-protected-push.sh ejecutable" test -x "$HOME/.claude/hooks/block-protected-push.sh"
 check "notify-stop usa alerter"      grep -q 'alerter' "$HOME/.claude/hooks/notify-stop.sh"
 check "notify-attention usa alerter" grep -q 'alerter' "$HOME/.claude/hooks/notify-attention.sh"
 check "notify-stop escribe last-notify"      grep -q 'last-notify' "$HOME/.claude/hooks/notify-stop.sh"
@@ -365,8 +367,42 @@ check "plugin codex habilitado"        jq -e '.enabledPlugins["codex@openai-code
 check "marketplace openai-codex registrado" jq -e '.extraKnownMarketplaces["openai-codex"].source.repo == "openai/codex-plugin-cc"' "$claude_settings"
 check "claude-new disponible en shell" bash -c 'source "$HOME/.config/zsh/claude-helpers.sh" 2>/dev/null && declare -f claude-new &>/dev/null'
 check "función claude (cuenta personal)" bash -c 'source "$HOME/.config/zsh/claude-helpers.sh" 2>/dev/null && declare -f claude &>/dev/null'
-check "deny de git push"               jq -e '.permissions.deny | index("Bash(git push:*)")' "$claude_settings"
-check "hook PreToolUse bloquea push"   jq -e '.hooks.PreToolUse[] | select(.matcher=="Bash") | .hooks[] | select(.type=="command") | .command | test("push")' "$claude_settings"
+check "deny de git push --all"          jq -e '.permissions.deny | index("Bash(git push --all *)")' "$claude_settings"
+check "deny de git push --mirror"       jq -e '.permissions.deny | index("Bash(git push --mirror *)")' "$claude_settings"
+check "sin deny total de git push"      bash -c "! jq -e '.permissions.deny | index(\"Bash(git push:*)\")' '$claude_settings' >/dev/null"
+check "hook PreToolUse llama a block-protected-push" \
+  jq -e '.hooks.PreToolUse[] | select(.matcher=="Bash") | .hooks[] | select(.type=="command") | .command | test("block-protected-push.sh")' "$claude_settings"
+
+push_hook="$HOME/.claude/hooks/block-protected-push.sh"
+push_hook_verdict() {
+  local branch="$1" cmd="$2" expected="$3" repo verdict
+  repo="$(mktemp -d)"
+  git -C "$repo" init -q -b "$branch" >/dev/null 2>&1
+  git -C "$repo" -c commit.gpgsign=false commit -q --allow-empty -m init >/dev/null 2>&1
+  local output
+  output="$(printf '{"cwd":"%s","tool_input":{"command":%s}}' "$repo" "$(jq -Rn --arg c "$cmd" '$c')" \
+    | "$push_hook")"
+  rm -rf "$repo"
+  if [[ -z "$output" ]]; then
+    verdict="allow"
+  else
+    verdict="$(printf '%s' "$output" | jq -r '.hookSpecificOutput.permissionDecision')"
+  fi
+  [[ "$verdict" == "$expected" ]]
+}
+check "hook bloquea push estando en main"      push_hook_verdict main      'git push' deny
+check "hook bloquea push explícito a main"     push_hook_verdict feature/x 'git push origin main' deny
+check "hook bloquea HEAD:MASTER"               push_hook_verdict feature/x 'git push origin HEAD:MASTER' deny
+check "hook bloquea refs/heads/alpha"          push_hook_verdict feature/x 'git push origin refs/heads/alpha' deny
+check "hook bloquea --delete de rama protegida" push_hook_verdict feature/x 'git push origin --delete development' deny
+check "hook bloquea push --all"                push_hook_verdict feature/x 'git push --all origin' deny
+check "hook bloquea rama indeterminable"       push_hook_verdict feature/x 'git push origin "$RAMA"' deny
+check "hook bloquea push en cadena a dev"      push_hook_verdict feature/x 'git commit -m x && git push origin dev' deny
+check "hook permite push en rama de trabajo"   push_hook_verdict feature/x 'git push' allow
+check "hook permite push explícito a rama de trabajo" push_hook_verdict main 'git push -u origin feature/x' allow
+check "hook permite --force-with-lease en rama de trabajo" \
+  push_hook_verdict feature/x 'git push --force-with-lease origin feature/x' allow
+check "hook ignora comandos que no son push"   push_hook_verdict main 'git status' allow
 check "statusLine configurado"         jq -e '.statusLine.type == "command"' "$claude_settings"
 check "statusLine apunta a statusline.sh" \
   bash -c "jq -r '.statusLine.command' '$claude_settings' | grep -q 'statusline.sh'"

@@ -76,7 +76,9 @@ Cuando generes HTML como **output principal** para el usuario (artefactos de `/r
 - En todo repositorio, sigue las reglas de commits atómicos si están descritas en el `CLAUDE.md` del proyecto.
 - No saltes hooks (`--no-verify`, `--no-gpg-sign`) salvo petición explícita.
 - Prefiere crear commits nuevos antes que `--amend` cuando algo falla.
-- **Nunca hagas `git push` en ningún repositorio.** Todo push es manual y lo hace el usuario. Hay un hook que lo bloquea; no intentes sortearlo.
+- **Ramas protegidas: `git push` prohibido.** Nunca pushees a `main`, `master`, `dev`, `develop`, `development` ni `alpha` (ni variantes en mayúsculas). Tampoco `--all` ni `--mirror`, que arrastran esas ramas. El push a ramas protegidas lo hace el usuario a mano. Hay un hook (`~/.claude/hooks/block-protected-push.sh`) que lo bloquea; no intentes sortearlo.
+- **En cualquier otra rama, el push está permitido** cuando el usuario lo pida (explícitamente o como parte de un flujo que lo requiera, p. ej. abrir una PR). No hace falta confirmación extra. Sigue sin usarse `--no-verify`.
+- Si el hook no puede determinar a qué rama apunta el push (variables, subshells, HEAD desacoplado), lo bloquea por precaución: usa un refspec explícito (`git push origin mi-rama`).
 - **Pull requests en inglés.** Cuando crees una PR, todo su texto (título, descripción, comentarios, checklist…) va en inglés, aunque los commits o la conversación estén en español.
 
 ## Cómo se actualiza este fichero
