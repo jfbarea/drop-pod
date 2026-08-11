@@ -124,6 +124,7 @@ check_symlink "~/.claude/agents/reviewer.md"   "$HOME/.claude/agents/reviewer.md
 check_symlink "~/.claude/agents/debugger.md"   "$HOME/.claude/agents/debugger.md"    "$DOTFILES/claudeconfig/.claude/agents/debugger.md"
 check_symlink "~/.claude/agents/auditor.md"    "$HOME/.claude/agents/auditor.md"     "$DOTFILES/claudeconfig/.claude/agents/auditor.md"
 check_symlink "~/.claude/commands/scaffold.md"     "$HOME/.claude/commands/scaffold.md"     "$DOTFILES/claudeconfig/.claude/commands/scaffold.md"
+check_symlink "~/.claude/commands/specs.md"        "$HOME/.claude/commands/specs.md"        "$DOTFILES/claudeconfig/.claude/commands/specs.md"
 check_symlink "~/.claude/commands/feature.md"      "$HOME/.claude/commands/feature.md"      "$DOTFILES/claudeconfig/.claude/commands/feature.md"
 check_symlink "~/.claude/commands/quick.md"        "$HOME/.claude/commands/quick.md"        "$DOTFILES/claudeconfig/.claude/commands/quick.md"
 check_symlink "~/.claude/commands/milestone-run.md" "$HOME/.claude/commands/milestone-run.md" "$DOTFILES/claudeconfig/.claude/commands/milestone-run.md"
@@ -142,6 +143,18 @@ check "/code-review built-in sin sombrear" \
 check_symlink "~/.claude/skills/worktree-cleanup/SKILL.md" \
   "$HOME/.claude/skills/worktree-cleanup/SKILL.md" \
   "$DOTFILES/claudeconfig/.claude/skills/worktree-cleanup/SKILL.md"
+
+# ── 6b. Cadena de comandos de feature ────────────────────────────────────────
+section "Cadena de comandos de feature"
+specs_cmd="$DOTFILES/claudeconfig/.claude/commands/specs.md"
+check "/specs escribe la fuente de verdad en plan/specs/" \
+  grep -q 'plan/specs/<slug>.md' "$specs_cmd"
+check "/specs pregunta de una en una" \
+  grep -q 'Una pregunta por turno' "$specs_cmd"
+check "/specs no se aprueba a sí misma" \
+  grep -q 'nunca te apruebes tu propia spec' "$specs_cmd"
+check "/specs renderiza al scriptorium" \
+  grep -q 'src/html/<repo-name>/spec-<slug>.html' "$specs_cmd"
 
 # ── 7. Permisos ───────────────────────────────────────────────────────────────
 section "Permisos de ficheros"
