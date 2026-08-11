@@ -148,6 +148,7 @@ check_symlink "~/.claude/skills/worktree-cleanup/SKILL.md" \
 section "Cadena de comandos de feature"
 specs_cmd="$DOTFILES/claudeconfig/.claude/commands/specs.md"
 feature_cmd="$DOTFILES/claudeconfig/.claude/commands/feature.md"
+research_cmd="$DOTFILES/claudeconfig/.claude/commands/research.md"
 check "/specs escribe la fuente de verdad en plan/specs/" \
   grep -q 'plan/specs/<slug>.md' "$specs_cmd"
 check "/specs pregunta de una en una" \
@@ -162,6 +163,10 @@ check "/feature no inventa el alcance" \
   grep -q 'para y dime que hay que pasar por `/specs`' "$feature_cmd"
 check "/feature deriva hitos de los criterios de la spec" \
   grep -q 'derivados de los criterios de aceptación de la spec' "$feature_cmd"
+check "/research hace hand-off a /specs" \
+  grep -q 'Hand-off a /specs' "$research_cmd"
+check "/research ya no salta a /feature" \
+  bash -c "! grep -q 'READY_FOR_FEATURE' '$research_cmd'"
 
 # ── 7. Permisos ───────────────────────────────────────────────────────────────
 section "Permisos de ficheros"
