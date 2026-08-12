@@ -73,7 +73,7 @@ Cuando generes HTML como **output principal** para el usuario (artefactos de `/r
 ## Commits y trabajo
 
 - **Commitea al terminar la tarea, sin esperar a que te lo pidan.** Cuando acabes un trabajo y el working tree tenga cambios, agrúpalos en commits atómicos y commitéalos con la misma calidad que `/commit`: un cambio lógico por commit, mensaje `tipo(scope): resumen` en imperativo, el porqué en el cuerpo cuando no sea obvio. No dejes cambios colgando en el working tree como estado final.
-- Esto aplica también estando en una rama protegida: **commitear sí, pushear nunca** (ver la regla de push más abajo).
+- **Salvo en rama protegida.** Comprueba la rama antes de commitear: si HEAD está en `main`, `master`, `dev`, `develop`, `development` o `alpha` (o variantes en mayúsculas), **no commitees**. Deja los cambios en el working tree, dilo al terminar y ofrece crear rama o commitear ahí si el usuario lo pide. Es la misma lista de ramas que veta el push.
 - Excepciones: si el usuario pide explícitamente que no commitees, o que deje los cambios en el working tree para revisarlos, respétalo. Y si el trabajo queda a medias (tests rojos, algo sin terminar), no lo commitees: dilo y deja el árbol como está.
 - `/commit` sigue existiendo para commitear lo que ya estuviera pendiente de antes.
 - En todo repositorio, sigue las reglas de commits atómicos si están descritas en el `CLAUDE.md` del proyecto.
