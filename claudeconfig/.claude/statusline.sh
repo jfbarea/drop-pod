@@ -63,9 +63,9 @@ rate_block() {
   resets_at=$3
   window=$4
   [ "$quota" -ge 0 ] 2>/dev/null || return 1
-  block="${dim_gray}${label}${reset} $(pct_color "$quota")$(gauge "$quota")${quota}%${reset}"
+  block="${dim_gray}${label}${reset} $(pct_color "$quota")$(gauge "$quota") ${quota}%${reset}"
   if t=$(elapsed_pct "$resets_at" "$window"); then
-    block="${block} ${dim_gray}◷${t}%${reset}"
+    block="${block} ${dim_gray}◷ ${t}%${reset}"
   fi
   printf '%s' "$block"
 }
