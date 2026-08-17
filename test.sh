@@ -395,6 +395,10 @@ check "función claude (cuenta personal)" bash -c 'source "$HOME/.config/zsh/cla
 check "deny de git push --all"          jq -e '.permissions.deny | index("Bash(git push --all *)")' "$claude_settings"
 check "deny de git push --mirror"       jq -e '.permissions.deny | index("Bash(git push --mirror *)")' "$claude_settings"
 check "sin deny total de git push"      bash -c "! jq -e '.permissions.deny | index(\"Bash(git push:*)\")' '$claude_settings' >/dev/null"
+check "deny de rutas sensibles con Edit(...)" \
+  jq -e '.permissions.deny | index("Edit(/etc/*)") and index("Edit(/usr/*)") and index("Edit(/boot/*)") and index("Edit(~/.ssh/*)")' "$claude_settings"
+check "sin deny con Write(...) (no se evalúan)" \
+  bash -c "! jq -e '.permissions.deny | map(select(startswith(\"Write(\"))) | length > 0' '$claude_settings' >/dev/null"
 check "hook PreToolUse llama a block-protected-push" \
   jq -e '.hooks.PreToolUse[] | select(.matcher=="Bash") | .hooks[] | select(.type=="command") | .command | test("block-protected-push.sh")' "$claude_settings"
 
