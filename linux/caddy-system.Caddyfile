@@ -1,0 +1,23 @@
+# Caddy de SISTEMA (paquete de Debian, /etc/caddy/Caddyfile, escucha en :80 como
+# usuario `caddy`). Actúa de router por cabecera Host: reparte los nombres
+# .local entre los dos servidores locales, que siguen accesibles por su puerto.
+#
+#   scriptorium.ratatoskr.local -> Caddy de usuario  (scriptorium, :8081)
+#   strategium.ratatoskr.local  -> magos-wiki         (wiki, :8080)
+#
+# No sustituye a esos servidores; solo es la puerta de entrada por nombre, para
+# no tener que recordar puertos desde el Mac. La resolución de los nombres la da
+# avahi-aliases.service (CNAMEs mDNS), no este fichero.
+
+{
+	admin off
+	auto_https off
+}
+
+http://scriptorium.ratatoskr.local {
+	reverse_proxy 127.0.0.1:8081
+}
+
+http://strategium.ratatoskr.local {
+	reverse_proxy 127.0.0.1:8080
+}

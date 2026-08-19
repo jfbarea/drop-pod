@@ -110,6 +110,7 @@
       }
     }
   },
+  "tui": "fullscreen",
   "theme": "dark",
   "preferredNotifChannel": "ghostty",
   "agentPushNotifEnabled": true,

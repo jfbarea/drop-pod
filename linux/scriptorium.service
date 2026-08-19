@@ -1,0 +1,16 @@
+# Equivalente Linux del LaunchAgent com.fran.scriptorium de macOS: mantiene vivo
+# el Caddy que sirve ~/src/html. No necesita el wrapper scriptorium-serve.sh
+# (que en macOS existe solo para meter Homebrew en el PATH de launchd): systemd
+# hereda un PATH utilizable y caddy viene de apt en /usr/bin.
+
+[Unit]
+Description=Scriptorium (Caddy sirviendo ~/src/html) en el 8081
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/caddy run --config %h/.config/caddy/scriptorium.Caddyfile --adapter caddyfile
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
