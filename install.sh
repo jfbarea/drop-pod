@@ -393,6 +393,40 @@ setup_claude() {
   ok "Claude hooks made executable"
 }
 
+# Alias de SSH (~/.ssh/config.d/*.conf) sin pisar la config existente.
+#
+# ~/.ssh/config NO se symlinkea: puede tener hosts de trabajo, identidades de
+# git, etc. En su lugar se le garantiza un «Include ~/.ssh/config.d/*.conf» en
+# la primera línea (ssh se queda con el primer valor de cada keyword, así que
+# nuestros alias tienen prioridad) y son los ficheros de config.d/ los que
+# vienen del repo por symlink.
+setup_ssh() {
+  local cfg="$HOME/.ssh/config"
+  local include_line="Include ~/.ssh/config.d/*.conf"
+
+  mkdir -p "$HOME/.ssh/config.d"
+  chmod 700 "$HOME/.ssh" "$HOME/.ssh/config.d"
+
+  safe_stow ssh
+
+  # ssh rechaza ficheros de config escribibles por grupo/otros. git no versiona
+  # más bit que el de ejecución, así que un clon con umask 002 los dejaría en
+  # 664: hay que forzarlo aquí en cada instalación.
+  chmod 600 "$DOTFILES/ssh/.ssh/config.d/"*.conf
+
+  if [[ ! -e "$cfg" ]]; then
+    printf '%s\n' "$include_line" > "$cfg"
+    ok "~/.ssh/config creado con el Include de config.d/"
+  elif grep -qF "$include_line" "$cfg"; then
+    ok "~/.ssh/config ya incluye config.d/"
+  else
+    printf '%s\n\n%s\n' "$include_line" "$(cat "$cfg")" > "$cfg.dotfiles-tmp"
+    mv "$cfg.dotfiles-tmp" "$cfg"
+    ok "Include de config.d/ añadido al principio de ~/.ssh/config"
+  fi
+  chmod 600 "$cfg"
+}
+
 switch_dotfiles_remote() {
   local remote_url
   remote_url="$(git -C "$DOTFILES" remote get-url origin 2>/dev/null || true)"
@@ -536,6 +570,81 @@ setup_hammerspoon() {
   fi
 }
 
+setup_scriptorium_linux() {
+  # Equivalente Linux de setup_scriptorium: mismo servidor, pero en :8081 (el
+  # 8080 lo ocupa magos-wiki.service), arrancado por una unit de usuario de
+  # systemd en vez de un LaunchAgent, y sin el acceso por http://scriptorium
+  # (puerto 80) que en macOS montan pf + /etc/hosts.
+  local caddy_src="$DOTFILES/linux/scriptorium.Caddyfile"
+  local caddy_dst="$HOME/.config/caddy/scriptorium.Caddyfile"
+  # La plantilla de listado es agnóstica de plataforma; vive en macos/ porque es
+  # donde nació el scriptorium. Se comparte en vez de duplicarse para que no
+  # deriven dos copias.
+  local browse_src="$DOTFILES/macos/scriptorium-browse.html"
+  local browse_dst="$HOME/.config/caddy/scriptorium-browse.html"
+  local unit_src="$DOTFILES/linux/scriptorium.service"
+  local unit_dst="$HOME/.config/systemd/user/scriptorium.service"
+
+  if ! command -v caddy &>/dev/null; then
+    warn "caddy no está instalado — scriptorium no se levanta"
+    return 1
+  fi
+
+  safe_link "$caddy_src"  "$caddy_dst"
+  safe_link "$browse_src" "$browse_dst"
+  safe_link "$unit_src"   "$unit_dst"
+
+  # El caddy de usuario (:8081) y el de sistema (:80, reverse proxy en
+  # setup_local_vhosts_linux) conviven: son puertos distintos con roles
+  # distintos, no compiten.
+
+  systemctl --user daemon-reload
+  if systemctl --user enable --now scriptorium.service 2>/dev/null; then
+    ok "scriptorium.service activo (Caddy sirviendo ~/src/html en :8081)"
+  else
+    warn "No se pudo arrancar scriptorium.service (revisa: systemctl --user status scriptorium)"
+  fi
+}
+
+setup_local_vhosts_linux() {
+  # Acceso por nombre a los servidores locales desde la LAN (p. ej. el Mac):
+  #   scriptorium.ratatoskr.local -> caddy de usuario (:8081)
+  #   strategium.ratatoskr.local  -> magos-wiki       (:8080)
+  # Dos piezas: (1) resolución vía CNAMEs mDNS que siguen al hostname sin fijar
+  # IP, y (2) enrutado por Host en el caddy de sistema del :80. Ambas requieren
+  # sudo (ficheros en /etc y unit de sistema).
+  local cname_src="$DOTFILES/linux/avahi-cname-publish"
+  local cname_dst="/usr/local/bin/avahi-cname-publish"
+  local aliases_unit_src="$DOTFILES/linux/avahi-aliases.service"
+  local aliases_unit_dst="/etc/systemd/system/avahi-aliases.service"
+  local vhosts_src="$DOTFILES/linux/caddy-system.Caddyfile"
+  local vhosts_dst="/etc/caddy/Caddyfile"
+
+  if ! command -v caddy &>/dev/null; then
+    warn "caddy no está instalado — vhosts .local no configurados"
+    return 1
+  fi
+  if ! python3 -c "import dbus" 2>/dev/null; then
+    warn "python3-dbus no está instalado — alias mDNS no se publicarán"
+    return 1
+  fi
+
+  chmod +x "$cname_src"
+
+  # (1) Alias mDNS (CNAME) — unit de sistema.
+  sudo install -m 0755 "$cname_src" "$cname_dst"
+  sudo install -m 0644 "$aliases_unit_src" "$aliases_unit_dst"
+  sudo systemctl daemon-reload
+  sudo systemctl enable --now avahi-aliases.service
+  ok "avahi-aliases.service activo (CNAMEs scriptorium/strategium -> ratatoskr.local)"
+
+  # (2) Reverse proxy por Host — caddy de sistema en :80.
+  sudo install -m 0644 "$vhosts_src" "$vhosts_dst"
+  sudo systemctl enable caddy.service
+  sudo systemctl reload caddy.service 2>/dev/null || sudo systemctl restart caddy.service
+  ok "caddy de sistema enruta scriptorium.* -> :8081 y strategium.* -> :8080"
+}
+
 copy_claude_template() {
   if [[ -d "$HOME/src" && ! -f "$HOME/src/CLAUDE.md" ]]; then
     cp "$DOTFILES/templates/CLAUDE.md" "$HOME/src/CLAUDE.md"
@@ -576,6 +685,9 @@ run_step "stow:zsh"   safe_stow zsh
 # Claude Code (settings.json, hooks/ → $HOME/.claude/)
 run_step "stow:claude" setup_claude
 
+# SSH (alias de host → $HOME/.ssh/config.d/)
+run_step "stow:ssh" setup_ssh
+
 # Clear Debian's default MOTD (replaced by our Tolkien welcome)
 if [[ "$PLATFORM" == "linux" ]]; then
   run_step "motd" clear_system_motd
@@ -591,9 +703,12 @@ if [[ "$PLATFORM" == "macos" ]]; then
   run_step "worktree-cleanup" setup_worktree_cleanup
 fi
 
-# macOS: servidor web local "scriptorium" (Caddy sirviendo ~/src/html en :8080)
+# Servidor web local "scriptorium" (Caddy sirviendo ~/src/html): LaunchAgent en
+# :8080 bajo macOS, unit de usuario de systemd en :8081 bajo Linux.
 if [[ "$PLATFORM" == "macos" ]]; then
   run_step "scriptorium" setup_scriptorium
+else
+  run_step "scriptorium" setup_scriptorium_linux
 fi
 
 # macOS: bridge del botón «Compartir» del scriptorium (127.0.0.1:8737)
@@ -609,6 +724,12 @@ fi
 # macOS: triple Shift → foco a la última sesión de Claude en Ghostty (Hammerspoon)
 if [[ "$PLATFORM" == "macos" ]]; then
   run_step "hammerspoon" setup_hammerspoon
+fi
+
+# Linux: acceso por nombre .local (scriptorium/strategium) vía CNAMEs mDNS +
+# reverse proxy en el caddy de sistema.
+if [[ "$PLATFORM" == "linux" ]]; then
+  run_step "local-vhosts" setup_local_vhosts_linux
 fi
 
 # Switch dotfiles remote from HTTPS to SSH if needed

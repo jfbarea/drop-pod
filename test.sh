@@ -27,7 +27,12 @@ check_symlink() {
   local desc="$1" dst="$2" src="$3"
   # readlink -f resolves relative symlinks (stow creates relative paths) to absolute
   local resolved; resolved="$(readlink -f "$dst" 2>/dev/null || true)"
-  if [[ -L "$dst" && "$resolved" == "$src" ]]; then
+  # No se exige que $dst sea symlink: stow pliega el árbol cuando el directorio
+  # de destino no existe (~/.claude/skills → repo/…/skills), y entonces los
+  # ficheros de dentro son reales, alcanzados a través del padre symlinkado.
+  # Que readlink -f resuelva a $src ya prueba que la ruta pasa por el repo: un
+  # fichero independiente resolvería a su propia ruta bajo $HOME.
+  if [[ -e "$dst" && "$resolved" == "$src" ]]; then
     echo -e "  ${GRN}✓${RST} $desc"
     PASS=$((PASS + 1))
   else
@@ -335,6 +340,26 @@ if [[ "$PLATFORM" == "macos" ]]; then
   section "macOS — VLC"
   check "VLC instalado" test -d "/Applications/VLC.app"
 fi
+
+# ── 7i. SSH: alias de host ────────────────────────────────────────────────────
+section "SSH (~/.ssh/config.d/)"
+ssh_conf="$DOTFILES/ssh/.ssh/config.d/ratatoskr.conf"
+check_symlink "~/.ssh/config.d/ratatoskr.conf" \
+  "$HOME/.ssh/config.d/ratatoskr.conf" "$ssh_conf"
+check "~/.ssh/config incluye config.d/" \
+  grep -qF 'Include ~/.ssh/config.d/*.conf' "$HOME/.ssh/config"
+check "el Include va en la primera línea" \
+  bash -c '[[ "$(head -1 "$HOME/.ssh/config")" == "Include ~/.ssh/config.d/*.conf" ]]'
+check "~/.ssh/config no es escribible por grupo/otros" \
+  bash -c '[[ -z "$(find "$HOME/.ssh/config" -perm /go+w)" ]]'
+check "ratatoskr.conf no es escribible por grupo/otros" \
+  bash -c '[[ -z "$(find "'"$ssh_conf"'" -perm /go+w)" ]]'
+check "alias ratatoskr resuelve a ratatoskr.local" \
+  bash -c '[[ "$(ssh -G ratatoskr | awk "/^hostname /{print \$2}")" == "ratatoskr.local" ]]'
+check "alias ratatoskr-ts resuelve al nombre MagicDNS" \
+  bash -c '[[ "$(ssh -G ratatoskr-ts | awk "/^hostname /{print \$2}")" == "ratatoskr.tail69372f.ts.net" ]]'
+check "los dos alias usan el usuario fran" \
+  bash -c '[[ "$(ssh -G ratatoskr | awk "/^user /{print \$2}")" == "fran" && "$(ssh -G ratatoskr-ts | awk "/^user /{print \$2}")" == "fran" ]]'
 
 # ── 8. Configuración de git ───────────────────────────────────────────────────
 section "Git config (~/.gitconfig)"
