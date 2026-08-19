@@ -9,6 +9,7 @@ Configuración portable para arrancar una máquina nueva en minutos.
 | **nvim/** | Neovim con lazy.nvim, LSP, Telescope, Treesitter, nvim-cmp |
 | **git/** | `.gitconfig` con aliases, delta como pager, opciones de pull/push |
 | **claudeconfig/** | `settings.json` de Claude Code + hook Stop + agentes y comandos multi-agente |
+| **ssh/** | Alias de host en `~/.ssh/config.d/` (incluidos desde `~/.ssh/config`) |
 | **packages/** | `Brewfile` (macOS) y `apt-packages.txt` (Linux/Raspberry Pi) |
 | **templates/** | Plantilla global `CLAUDE.md` para proyectos |
 
@@ -120,6 +121,23 @@ Para silenciar el hook en jobs desatendidos, exporta `CLAUDE_NO_NOTIFY=1` antes 
 
 ---
 
+## Alias de SSH
+
+`ssh/.ssh/config.d/ratatoskr.conf` define los alias para llegar a la Raspberry Pi sin escribir usuario ni dominio:
+
+| Alias | Ruta | Cuándo |
+|---|---|---|
+| `ssh ratatoskr` | `ratatoskr.local` (mDNS) | En la red de casa |
+| `ssh ratatoskr-ts` | `ratatoskr.tail69372f.ts.net` | Desde cualquier red, con tailscale levantado en los dos extremos |
+
+`~/.ssh/config` **no** se symlinkea: puede contener hosts de trabajo o identidades de git que no viven aquí. `install.sh` solo le garantiza un `Include ~/.ssh/config.d/*.conf` en la primera línea, y son los ficheros de `config.d/` los que llegan por symlink desde el repo. Como ssh se queda con el primer valor de cada keyword, los alias del repo tienen prioridad sobre lo que haya debajo.
+
+El paso de instalación fuerza `chmod 600` sobre los `.conf` del repo en cada ejecución: git no versiona más permiso que el bit de ejecución, así que un clon con `umask 002` los dejaría en 664 y ssh rechaza los ficheros de config escribibles por grupo.
+
+Para que la conexión no pida contraseña, la clave pública de la máquina cliente tiene que estar en `~/.ssh/authorized_keys` de la Pi. Eso es por máquina y no se versiona: `ssh-copy-id ratatoskr`.
+
+---
+
 ## Plantilla CLAUDE.md
 
 `templates/CLAUDE.md` es una plantilla comentada para colocar en `~/src/CLAUDE.md`. Claude Code la carga automáticamente para todos tus proyectos bajo `~/src/`. `install.sh` la copia si `~/src/` existe y no hay ya un `CLAUDE.md`.
@@ -159,6 +177,10 @@ dotfiles/
 │       └── skills/
 │           └── worktree-cleanup/
 │               └── SKILL.md
+├── ssh/
+│   └── .ssh/
+│       └── config.d/
+│           └── ratatoskr.conf   # alias «ratatoskr» y «ratatoskr-ts»
 ├── macos/                      # LaunchAgents + scripts (scriptorium, jobs diarios)
 ├── templates/
 │   └── CLAUDE.md

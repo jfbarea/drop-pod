@@ -393,6 +393,40 @@ setup_claude() {
   ok "Claude hooks made executable"
 }
 
+# Alias de SSH (~/.ssh/config.d/*.conf) sin pisar la config existente.
+#
+# ~/.ssh/config NO se symlinkea: puede tener hosts de trabajo, identidades de
+# git, etc. En su lugar se le garantiza un «Include ~/.ssh/config.d/*.conf» en
+# la primera línea (ssh se queda con el primer valor de cada keyword, así que
+# nuestros alias tienen prioridad) y son los ficheros de config.d/ los que
+# vienen del repo por symlink.
+setup_ssh() {
+  local cfg="$HOME/.ssh/config"
+  local include_line="Include ~/.ssh/config.d/*.conf"
+
+  mkdir -p "$HOME/.ssh/config.d"
+  chmod 700 "$HOME/.ssh" "$HOME/.ssh/config.d"
+
+  safe_stow ssh
+
+  # ssh rechaza ficheros de config escribibles por grupo/otros. git no versiona
+  # más bit que el de ejecución, así que un clon con umask 002 los dejaría en
+  # 664: hay que forzarlo aquí en cada instalación.
+  chmod 600 "$DOTFILES/ssh/.ssh/config.d/"*.conf
+
+  if [[ ! -e "$cfg" ]]; then
+    printf '%s\n' "$include_line" > "$cfg"
+    ok "~/.ssh/config creado con el Include de config.d/"
+  elif grep -qF "$include_line" "$cfg"; then
+    ok "~/.ssh/config ya incluye config.d/"
+  else
+    printf '%s\n\n%s\n' "$include_line" "$(cat "$cfg")" > "$cfg.dotfiles-tmp"
+    mv "$cfg.dotfiles-tmp" "$cfg"
+    ok "Include de config.d/ añadido al principio de ~/.ssh/config"
+  fi
+  chmod 600 "$cfg"
+}
+
 switch_dotfiles_remote() {
   local remote_url
   remote_url="$(git -C "$DOTFILES" remote get-url origin 2>/dev/null || true)"
@@ -650,6 +684,9 @@ run_step "stow:zsh"   safe_stow zsh
 
 # Claude Code (settings.json, hooks/ → $HOME/.claude/)
 run_step "stow:claude" setup_claude
+
+# SSH (alias de host → $HOME/.ssh/config.d/)
+run_step "stow:ssh" setup_ssh
 
 # Clear Debian's default MOTD (replaced by our Tolkien welcome)
 if [[ "$PLATFORM" == "linux" ]]; then

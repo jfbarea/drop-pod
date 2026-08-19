@@ -335,6 +335,26 @@ if [[ "$PLATFORM" == "macos" ]]; then
   fi
 fi
 
+# ── 7h. SSH: alias de host ────────────────────────────────────────────────────
+section "SSH (~/.ssh/config.d/)"
+ssh_conf="$DOTFILES/ssh/.ssh/config.d/ratatoskr.conf"
+check_symlink "~/.ssh/config.d/ratatoskr.conf" \
+  "$HOME/.ssh/config.d/ratatoskr.conf" "$ssh_conf"
+check "~/.ssh/config incluye config.d/" \
+  grep -qF 'Include ~/.ssh/config.d/*.conf' "$HOME/.ssh/config"
+check "el Include va en la primera línea" \
+  bash -c '[[ "$(head -1 "$HOME/.ssh/config")" == "Include ~/.ssh/config.d/*.conf" ]]'
+check "~/.ssh/config no es escribible por grupo/otros" \
+  bash -c '[[ -z "$(find "$HOME/.ssh/config" -perm /go+w)" ]]'
+check "ratatoskr.conf no es escribible por grupo/otros" \
+  bash -c '[[ -z "$(find "'"$ssh_conf"'" -perm /go+w)" ]]'
+check "alias ratatoskr resuelve a ratatoskr.local" \
+  bash -c '[[ "$(ssh -G ratatoskr | awk "/^hostname /{print \$2}")" == "ratatoskr.local" ]]'
+check "alias ratatoskr-ts resuelve al nombre MagicDNS" \
+  bash -c '[[ "$(ssh -G ratatoskr-ts | awk "/^hostname /{print \$2}")" == "ratatoskr.tail69372f.ts.net" ]]'
+check "los dos alias usan el usuario fran" \
+  bash -c '[[ "$(ssh -G ratatoskr | awk "/^user /{print \$2}")" == "fran" && "$(ssh -G ratatoskr-ts | awk "/^user /{print \$2}")" == "fran" ]]'
+
 # ── 8. Configuración de git ───────────────────────────────────────────────────
 section "Git config (~/.gitconfig)"
 check "user.name = Fran"                  bash -c '[[ "$(git config --global user.name)" == "Fran" ]]'
