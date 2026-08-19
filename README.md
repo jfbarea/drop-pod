@@ -10,6 +10,7 @@ Configuración portable para arrancar una máquina nueva en minutos.
 | **git/** | `.gitconfig` con aliases, delta como pager, opciones de pull/push |
 | **claudeconfig/** | `settings.json` de Claude Code + hook Stop + agentes y comandos multi-agente |
 | **ssh/** | Alias de host en `~/.ssh/config.d/` (incluidos desde `~/.ssh/config`) |
+| **starship/** | `starship.toml` con los timeouts del prompt subidos |
 | **packages/** | `Brewfile` (macOS) y `apt-packages.txt` (Linux/Raspberry Pi) |
 | **templates/** | Plantilla global `CLAUDE.md` para proyectos |
 
@@ -138,6 +139,26 @@ Para que la conexión no pida contraseña, la clave pública de la máquina clie
 
 ---
 
+## starship
+
+`starship/.config/starship.toml` sube dos timeouts del prompt y deja el resto en los valores de fábrica:
+
+| Opción | Defecto | Aquí | Para qué |
+|---|---|---|---|
+| `scan_timeout` | 30 ms | 100 ms | Listar el directorio actual para decidir qué módulos de lenguaje mostrar |
+| `command_timeout` | 500 ms | 2000 ms | Ejecutar comandos externos de versión (`node --version`, etc.) |
+
+Sin esto, en la Raspberry Pi —raíz en tarjeta SD, node instalado vía nvm— el primer prompt tras abrir la shell salía con la caché de página vacía, se pasaba de los límites y starship escupía:
+
+```
+[WARN] - (starship::context): Scanning current directory timed out.
+[WARN] - (starship::utils): Executing command ".../node" timed out.
+```
+
+En caliente las dos operaciones tardan ~10 ms, así que solo estorbaba el arranque en frío. Los warnings son inocuos —el prompt se pinta igual—, pero el módulo abortado puede dejarse fuera la versión del lenguaje.
+
+---
+
 ## Plantilla CLAUDE.md
 
 `templates/CLAUDE.md` es una plantilla comentada para colocar en `~/src/CLAUDE.md`. Claude Code la carga automáticamente para todos tus proyectos bajo `~/src/`. `install.sh` la copia si `~/src/` existe y no hay ya un `CLAUDE.md`.
@@ -181,6 +202,9 @@ dotfiles/
 │   └── .ssh/
 │       └── config.d/
 │           └── ratatoskr.conf   # alias «ratatoskr» y «ratatoskr-ts»
+├── starship/
+│   └── .config/
+│       └── starship.toml       # timeouts del prompt
 ├── macos/                      # LaunchAgents + scripts (scriptorium, jobs diarios)
 ├── templates/
 │   └── CLAUDE.md

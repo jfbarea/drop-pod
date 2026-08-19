@@ -355,6 +355,20 @@ check "alias ratatoskr-ts resuelve al nombre MagicDNS" \
 check "los dos alias usan el usuario fran" \
   bash -c '[[ "$(ssh -G ratatoskr | awk "/^user /{print \$2}")" == "fran" && "$(ssh -G ratatoskr-ts | awk "/^user /{print \$2}")" == "fran" ]]'
 
+# ── 7i. starship: timeouts del prompt ─────────────────────────────────────────
+section "starship (~/.config/starship.toml)"
+starship_conf="$DOTFILES/starship/.config/starship.toml"
+check_symlink "~/.config/starship.toml" \
+  "$HOME/.config/starship.toml" "$starship_conf"
+check "scan_timeout por encima del defecto (30 ms)" \
+  bash -c '[[ "$(awk -F= "/^scan_timeout/{gsub(/ /,\"\",\$2);print \$2}" "'"$starship_conf"'")" -gt 30 ]]'
+check "command_timeout por encima del defecto (500 ms)" \
+  bash -c '[[ "$(awk -F= "/^command_timeout/{gsub(/ /,\"\",\$2);print \$2}" "'"$starship_conf"'")" -gt 500 ]]'
+check "starship parsea la config sin errores" \
+  bash -c 'STARSHIP_CONFIG="'"$starship_conf"'" starship print-config >/dev/null 2>&1'
+check "el prompt se renderiza sin warnings" \
+  bash -c '[[ -z "$(STARSHIP_CONFIG="'"$starship_conf"'" starship prompt 2>&1 >/dev/null)" ]]'
+
 # ── 8. Configuración de git ───────────────────────────────────────────────────
 section "Git config (~/.gitconfig)"
 check "user.name = Fran"                  bash -c '[[ "$(git config --global user.name)" == "Fran" ]]'
