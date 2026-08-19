@@ -330,6 +330,12 @@ if [[ "$PLATFORM" == "macos" ]]; then
   fi
 fi
 
+# ── 7h. macOS: VLC ────────────────────────────────────────────────────────────
+if [[ "$PLATFORM" == "macos" ]]; then
+  section "macOS — VLC"
+  check "VLC instalado" test -d "/Applications/VLC.app"
+fi
+
 # ── 8. Configuración de git ───────────────────────────────────────────────────
 section "Git config (~/.gitconfig)"
 check "user.name = Fran"                  bash -c '[[ "$(git config --global user.name)" == "Fran" ]]'
