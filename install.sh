@@ -688,6 +688,9 @@ run_step "stow:claude" setup_claude
 # SSH (alias de host → $HOME/.ssh/config.d/)
 run_step "stow:ssh" setup_ssh
 
+# starship (timeouts del prompt → $HOME/.config/starship.toml)
+run_step "stow:starship" safe_stow starship
+
 # Clear Debian's default MOTD (replaced by our Tolkien welcome)
 if [[ "$PLATFORM" == "linux" ]]; then
   run_step "motd" clear_system_motd
