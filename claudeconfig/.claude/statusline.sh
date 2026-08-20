@@ -18,6 +18,7 @@ $(printf '%s' "$input" | jq -r '[
 EOF
 
 now=$(date +%s)
+water_ml_per_pct=${CLAUDE_WATER_ML_PER_PCT:-1500}
 
 esc=$(printf '\033')
 reset="${esc}[0m"
@@ -82,6 +83,27 @@ fmt_tokens() {
   else
     printf '%d' "$n"
   fi
+}
+
+fmt_liters() {
+  ml=$1
+  if [ "$ml" -lt 100 ]; then
+    printf '0L'
+  elif [ "$ml" -ge 10000 ]; then
+    printf '%dL' $(((ml + 500) / 1000))
+  else
+    whole=$((ml / 1000))
+    frac=$(((ml % 1000 + 50) / 100))
+    if [ "$frac" -ge 10 ]; then whole=$((whole + 1)); frac=0; fi
+    printf '%d.%dL' "$whole" "$frac"
+  fi
+}
+
+water_block() {
+  quota=$1
+  [ "$quota" -ge 0 ] 2>/dev/null || return 1
+  ml=$((quota * water_ml_per_pct))
+  printf '%s' "$(pct_color "$quota")† $(fmt_liters "$ml")${reset}"
 }
 
 git_root=""
@@ -156,6 +178,9 @@ fi
 if b=$(rate_block 7d "$rl7" "$rl7_reset" 604800); then
   [ -n "$rl" ] && rl="${rl}${dim_gray} · ${reset}"
   rl="${rl}${b}"
+  if w=$(water_block "$rl7"); then
+    rl="${rl} ${w}"
+  fi
 fi
 [ -n "$rl" ] && line="${line} ${dim_gray}·${reset} ${rl}"
 

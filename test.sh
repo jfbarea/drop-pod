@@ -492,6 +492,14 @@ check "statusline.sh usa resets_at para el tiempo transcurrido" \
   grep -q 'resets_at' "$DOTFILES/claudeconfig/.claude/statusline.sh"
 check "statusline.sh rinde cupo y tiempo de ventana" \
   bash -c "echo '{\"cwd\":\"\$HOME\",\"model\":{\"display_name\":\"test\"},\"rate_limits\":{\"five_hour\":{\"used_percentage\":19,\"resets_at\":'\$(( \$(date +%s) + 3600 ))'},\"seven_day\":{\"used_percentage\":41,\"resets_at\":'\$(( \$(date +%s) + 86400 ))'}}}' | sh '$DOTFILES/claudeconfig/.claude/statusline.sh' | grep -q '◔ 19%.*◷ 80%.*◑ 41%.*◷ 85%'"
+check "statusline.sh define el memento mori de agua" \
+  grep -q 'water_block' "$DOTFILES/claudeconfig/.claude/statusline.sh"
+check "statusline.sh rinde litros junto al cupo semanal" \
+  bash -c "echo '{\"cwd\":\"\$HOME\",\"rate_limits\":{\"seven_day\":{\"used_percentage\":41}}}' | sh '$DOTFILES/claudeconfig/.claude/statusline.sh' | grep -q '7d.*41%.*† 62L'"
+check "statusline.sh respeta CLAUDE_WATER_ML_PER_PCT" \
+  bash -c "echo '{\"cwd\":\"\$HOME\",\"rate_limits\":{\"seven_day\":{\"used_percentage\":40}}}' | CLAUDE_WATER_ML_PER_PCT=100 sh '$DOTFILES/claudeconfig/.claude/statusline.sh' | grep -q '† 4.0L'"
+check "statusline.sh omite los litros sin cupo semanal" \
+  bash -c "! echo '{\"cwd\":\"\$HOME\",\"rate_limits\":{\"five_hour\":{\"used_percentage\":10}}}' | sh '$DOTFILES/claudeconfig/.claude/statusline.sh' | grep -q 'L'"
 check "statusline.sh renderiza sin errores" \
   bash -c "echo '{\"cwd\":\"\$HOME\",\"model\":{\"display_name\":\"test\"},\"context_window\":{\"used_percentage\":5,\"total_input_tokens\":50000,\"context_window_size\":1000000},\"rate_limits\":{\"five_hour\":{\"used_percentage\":10},\"seven_day\":{\"used_percentage\":20}}}' | sh '$DOTFILES/claudeconfig/.claude/statusline.sh' | grep -q 'ctx 5%'"
 
