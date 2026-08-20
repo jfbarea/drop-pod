@@ -276,6 +276,8 @@ if [[ "$PLATFORM" == "macos" ]]; then
   check "plantilla browse tiene export a PDF" grep -q 'function exportPdf' "$DOTFILES/macos/scriptorium-browse.html"
   check "plantilla browse tiene tiempo de lectura" grep -q 'function readingTime' "$DOTFILES/macos/scriptorium-browse.html"
   check "plantilla browse arranca con el catálogo colapsado" grep -q '<body class="nav-collapsed">' "$DOTFILES/macos/scriptorium-browse.html"
+  check "plantilla browse excluye los buscadores de Bitwarden" \
+    bash -c "[ \"\$(grep -c 'data-bwignore=\"true\"' '$DOTFILES/macos/scriptorium-browse.html')\" = 2 ]"
   check "scriptorium-serve.sh ejecutable" test -x "$DOTFILES/macos/scriptorium-serve.sh"
   check "scriptorium-root-setup.sh ejecutable" test -x "$DOTFILES/macos/scriptorium-root-setup.sh"
   check "LaunchAgent scriptorium cargado" bash -c 'launchctl list | grep -q com.fran.scriptorium'
