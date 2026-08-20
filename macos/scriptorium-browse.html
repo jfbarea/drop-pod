@@ -404,6 +404,7 @@ const fmt = iso => {
 const isHtml = it => !it.isDir && /\.html?$/i.test(it.name);
 const isShareable = it => !it.isDir && /\.html$/i.test(it.name);
 const label = it => it.isDir ? it.name.replace(/\/$/,'') : (it.title || it.name);
+const ts = it => Date.parse(it.mtime) || 0;
 
 async function fetchTitle(node){
   try {
@@ -429,7 +430,7 @@ async function loadChildren(node){
       children: null,
     }));
     await Promise.all(node.children.filter(isHtml).map(fetchTitle));
-    node.children.sort((a,b) => (b.isDir - a.isDir) || label(a).localeCompare(label(b), 'es'));
+    node.children.sort((a,b) => (b.isDir - a.isDir) || (ts(b) - ts(a)) || label(a).localeCompare(label(b), 'es'));
   } catch (e) {
     node.children = [];
   }
@@ -779,7 +780,6 @@ function renderPalette(){
   let items = flatIndex();
   if (q) items = items.filter(n => relOf(n).toLowerCase().includes(q));
   // Más recientes primero (vale tanto sin filtro como en resultados de búsqueda).
-  const ts = n => Date.parse(n.mtime) || 0;
   items.sort((a,b) => ts(b) - ts(a) || a.name.localeCompare(b.name,'es'));
   palItems = items.slice(0, 80);
   palSel = 0;
