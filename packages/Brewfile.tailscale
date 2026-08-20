@@ -1,0 +1,2 @@
+# Opcional: se aplica solo si DOTFILES_TAILSCALE != 0. Cask de tipo pkg — pide sudo.
+cask "tailscale-app"
