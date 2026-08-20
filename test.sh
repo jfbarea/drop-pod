@@ -9,6 +9,7 @@ PASS=0; FAIL=0; SKIP=0
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OS="$(uname -s)"
 [[ "$OS" == "Darwin" ]] && PLATFORM="macos" || PLATFORM="linux"
+TAILSCALE="${DOTFILES_TAILSCALE:-1}"
 
 section() { echo -e "\n${BOLD}${CYN}── $* ──${RST}"; }
 
@@ -54,8 +55,12 @@ check "bat (bat o batcat)"  bash -c 'command -v bat &>/dev/null || command -v ba
 check "fd  (fd o fdfind)"   bash -c 'command -v fd  &>/dev/null || command -v fdfind  &>/dev/null'
 if [[ "$PLATFORM" == "linux" ]]; then
   check "xclip" command -v xclip
-  check "tailscale" command -v tailscale
-  check "tailscaled habilitado" systemctl is-enabled --quiet tailscaled
+  if [[ "$TAILSCALE" == "0" ]]; then
+    skip "tailscale" "DOTFILES_TAILSCALE=0"
+  else
+    check "tailscale" command -v tailscale
+    check "tailscaled habilitado" systemctl is-enabled --quiet tailscaled
+  fi
 fi
 if [[ "$PLATFORM" == "macos" ]]; then
   check "alerter" command -v alerter
@@ -328,7 +333,16 @@ fi
 # ── 7g. macOS: Tailscale ──────────────────────────────────────────────────────
 if [[ "$PLATFORM" == "macos" ]]; then
   section "macOS — Tailscale"
-  if [[ -d "/Applications/Tailscale.app" ]]; then
+  check "Brewfile.tailscale existe" test -f "$DOTFILES/packages/Brewfile.tailscale"
+  check "Brewfile.tailscale declara el cask" \
+    grep -q 'cask "tailscale-app"' "$DOTFILES/packages/Brewfile.tailscale"
+  check "Brewfile principal no arrastra el cask" \
+    bash -c "! grep -q '^cask \"tailscale-app\"' '$DOTFILES/packages/Brewfile'"
+  check "install.sh respeta DOTFILES_TAILSCALE" \
+    grep -q 'DOTFILES_TAILSCALE' "$DOTFILES/install.sh"
+  if [[ "$TAILSCALE" == "0" ]]; then
+    skip "Tailscale" "DOTFILES_TAILSCALE=0"
+  elif [[ -d "/Applications/Tailscale.app" ]]; then
     check "shields-up activo" \
       bash -c '"/Applications/Tailscale.app/Contents/MacOS/Tailscale" debug prefs | jq -e ".ShieldsUp == true"'
   else

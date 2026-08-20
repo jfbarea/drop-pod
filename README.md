@@ -36,6 +36,22 @@ El script se encarga de todo:
 4. **Backup automático** — si un archivo de destino ya existe y no es un symlink al repo, lo mueve a `~/.dotfiles-backup/<timestamp>/` antes de reemplazarlo
 5. **Idempotente** — ejecutarlo dos veces no rompe nada ni duplica symlinks
 
+### Opciones
+
+| Variable | Por defecto | Efecto |
+|---|---|---|
+| `DOTFILES_TAILSCALE` | `1` | A `0`, omite Tailscale en ambas plataformas: ni el cask en macOS, ni el instalador oficial y `tailscaled` en Linux. `test.sh` lee la misma variable y salta sus checks. |
+
+```bash
+DOTFILES_TAILSCALE=0 ./install.sh
+```
+
+En macOS, Tailscale se instala aparte del `brew bundle` principal (`packages/Brewfile.tailscale`) porque su cask es de tipo `pkg` y su instalador pide `sudo` interactivo. Si no hay `sudo` disponible, `install.sh` avisa y sigue en vez de abortar; se completa después con:
+
+```bash
+brew bundle --file=packages/Brewfile.tailscale
+```
+
 ### Post-instalación
 
 Añade estas líneas a tu `~/.zshrc` o `~/.bashrc`:
@@ -210,6 +226,7 @@ dotfiles/
 │   └── CLAUDE.md
 ├── packages/
 │   ├── Brewfile
+│   ├── Brewfile.tailscale      # opcional, vía DOTFILES_TAILSCALE
 │   └── apt-packages.txt
 ├── install.sh
 └── README.md

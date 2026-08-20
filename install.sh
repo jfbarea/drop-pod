@@ -13,6 +13,7 @@ DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKUP_DIR="$HOME/.dotfiles-backup/$(date +%Y%m%d_%H%M%S)"
 OS="$(uname -s)"
 ARCH="$(uname -m)"
+TAILSCALE="${DOTFILES_TAILSCALE:-1}"
 
 case "$OS" in
   Darwin) PLATFORM="macos" ;;
@@ -39,7 +40,31 @@ install_packages_macos() {
   brew bundle --file="$DOTFILES/packages/Brewfile"
   ok "Homebrew packages ready"
 
+  install_tailscale_macos
   install_macos_extras
+}
+
+install_tailscale_macos() {
+  if [[ "$TAILSCALE" == "0" ]]; then
+    ok "Tailscale omitido (DOTFILES_TAILSCALE=0)"
+    return 0
+  fi
+  if [[ -d "/Applications/Tailscale.app" ]]; then
+    ok "Tailscale already installed"
+    return 0
+  fi
+  if ! sudo -n true 2>/dev/null && [[ ! -t 0 ]]; then
+    warn "Tailscale necesita sudo interactivo; instálalo a mano:"
+    warn "  brew bundle --file=\"$DOTFILES/packages/Brewfile.tailscale\""
+    warn "  (o salta el aviso con DOTFILES_TAILSCALE=0)"
+    return 0
+  fi
+  step "Installing Tailscale (requiere sudo)..."
+  if brew bundle --file="$DOTFILES/packages/Brewfile.tailscale"; then
+    ok "Tailscale installed"
+  else
+    warn "Tailscale no se pudo instalar; el resto de la instalación sigue"
+  fi
 }
 
 # Paquetes solo-macOS no disponibles en Homebrew — bajados de GitHub Releases
@@ -208,18 +233,22 @@ install_linux_extras() {
 
   # tailscale — no está en los repos de Debian/Raspbian; instalador oficial,
   # que añade el apt repo de Tailscale y deja el paquete gestionado por apt
-  if ! command -v tailscale &>/dev/null; then
-    step "Installing Tailscale..."
-    curl -fsSL https://tailscale.com/install.sh | sh
-    ok "Tailscale installed"
+  if [[ "$TAILSCALE" == "0" ]]; then
+    ok "Tailscale omitido (DOTFILES_TAILSCALE=0)"
   else
-    ok "Tailscale already installed"
-  fi
-  if ! systemctl is-enabled --quiet tailscaled 2>/dev/null; then
-    sudo systemctl enable --now tailscaled
-    ok "tailscaled service enabled"
-  else
-    ok "tailscaled service already enabled"
+    if ! command -v tailscale &>/dev/null; then
+      step "Installing Tailscale..."
+      curl -fsSL https://tailscale.com/install.sh | sh
+      ok "Tailscale installed"
+    else
+      ok "Tailscale already installed"
+    fi
+    if ! systemctl is-enabled --quiet tailscaled 2>/dev/null; then
+      sudo systemctl enable --now tailscaled
+      ok "tailscaled service enabled"
+    else
+      ok "tailscaled service already enabled"
+    fi
   fi
 
   # awscli v2 — apt solo trae v1 (obsoleto); instalador oficial de AWS
@@ -758,9 +787,11 @@ echo "  Next steps:"
 echo "  1. Log out and back in so zsh becomes the active shell"
 echo "  2. Launch nvim — lazy.nvim will install plugins on first run"
 echo "  3. Edit ~/src/CLAUDE.md to customize for your projects"
-echo "  4. Tailscale: log in once (macOS: open the app; Pi: sudo tailscale up --ssh)"
-echo "     and disable key expiry for the Pi in the admin console"
-echo "     macOS: enable shields-up so nothing in the tailnet can reach this Mac:"
-echo "       /Applications/Tailscale.app/Contents/MacOS/Tailscale set --shields-up=true"
+if [[ "$TAILSCALE" != "0" ]]; then
+  echo "  4. Tailscale: log in once (macOS: open the app; Pi: sudo tailscale up --ssh)"
+  echo "     and disable key expiry for the Pi in the admin console"
+  echo "     macOS: enable shields-up so nothing in the tailnet can reach this Mac:"
+  echo "       /Applications/Tailscale.app/Contents/MacOS/Tailscale set --shields-up=true"
+fi
 [[ -n "${BACKUP_DIR:-}" && -d "${BACKUP_DIR:-}" ]] && \
   echo "  5. Backups of replaced files: $BACKUP_DIR"
