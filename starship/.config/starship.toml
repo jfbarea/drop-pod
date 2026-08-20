@@ -1,0 +1,24 @@
+# Configuración de starship (el prompt).
+#
+# Solo se tocan los timeouts: todo lo demás se deja en los valores por defecto
+# de starship, que ya son los que queremos.
+#
+# Por qué subirlos: en la Raspberry Pi la raíz vive en una tarjeta SD, y en frío
+# (el primer prompt tras abrir la shell, con la caché de página vacía) tanto el
+# listado del directorio como el arranque de node se van por encima de los
+# límites de fábrica. Starship entonces aborta el módulo y escupe un warning:
+#
+#   [WARN] - (starship::context): Scanning current directory timed out.
+#   [WARN] - (starship::utils): Executing command "…/node" timed out.
+#
+# En caliente ambas operaciones tardan ~10 ms, así que el problema es solo el
+# arranque en frío; con estos márgenes no se vuelve a ver el aviso y el prompt
+# sigue siendo instantáneo en el caso normal.
+
+# Listado del directorio actual para decidir qué módulos de lenguaje mostrar.
+# Por defecto: 30 ms.
+scan_timeout = 100
+
+# Comandos externos que starship ejecuta para leer versiones (`node --version`,
+# etc.). Por defecto: 500 ms. Node se instala vía nvm, que arranca despacio.
+command_timeout = 2000
