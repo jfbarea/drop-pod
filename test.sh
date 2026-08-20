@@ -27,12 +27,13 @@ check_symlink() {
   local desc="$1" dst="$2" src="$3"
   # readlink -f resolves relative symlinks (stow creates relative paths) to absolute
   local resolved; resolved="$(readlink -f "$dst" 2>/dev/null || true)"
-  # No se exige que $dst sea symlink: stow pliega el árbol cuando el directorio
-  # de destino no existe (~/.claude/skills → repo/…/skills), y entonces los
-  # ficheros de dentro son reales, alcanzados a través del padre symlinkado.
-  # Que readlink -f resuelva a $src ya prueba que la ruta pasa por el repo: un
-  # fichero independiente resolvería a su propia ruta bajo $HOME.
-  if [[ -e "$dst" && "$resolved" == "$src" ]]; then
+  # Se exige que $dst sea symlink él mismo, no solo que resuelva al repo. Si
+  # stow pliega el árbol (crea un único enlace al directorio en vez de uno por
+  # fichero), el destino resuelve igual pero la carpeta pasa a apuntar dentro
+  # del repo, y todo lo que la herramienta escriba ahí aterriza en el working
+  # tree. safe_stow usa --no-folding justo para evitarlo: este check es lo que
+  # verifica que se ha respetado.
+  if [[ -L "$dst" && "$resolved" == "$src" ]]; then
     echo -e "  ${GRN}✓${RST} $desc"
     PASS=$((PASS + 1))
   else
