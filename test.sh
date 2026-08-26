@@ -179,6 +179,38 @@ check "/research hace hand-off a /specs" \
 check "/research ya no salta a /feature" \
   bash -c "! grep -q 'READY_FOR_FEATURE' '$research_cmd'"
 
+# ── 6c. Walkthroughs y code reviews en el scriptorium ────────────────────────
+section "Walkthroughs y code reviews en el scriptorium"
+global_md="$DOTFILES/claudeconfig/.claude/CLAUDE.md"
+wt_cmd="$DOTFILES/claudeconfig/.claude/commands/walkthrough.md"
+cr_cmd="$DOTFILES/claudeconfig/.claude/commands/code-review-scriptorium.md"
+check "el CLAUDE.md global fija la estructura" \
+  grep -q '^## Walkthroughs y code reviews en el scriptorium' "$global_md"
+check "el esqueleto es de ocho apartados en orden" \
+  grep -q '^### Esqueleto, en este orden' "$global_md"
+check "el esqueleto incluye comprobado y descartado" \
+  grep -q '\*\*Comprobado y descartado\*\*' "$global_md"
+check "el walkthrough va en desplegables colapsados" \
+  grep -q '`<details class="wt">` exterior \*\*colapsado\*\*' "$global_md"
+check "el reflow se separa del cambio real" \
+  grep -q '\.reflow' "$global_md"
+check "cada hallazgo lleva comentario de PR listo para pegar" \
+  grep -q '\.prcomment' "$global_md"
+check "no se publica sin --comment" \
+  grep -q 'No publiques nada\*\* sin `--comment` explícito' "$global_md"
+check "se verifica que el anclaje cae dentro de un hunk" \
+  grep -q 'cae dentro de un hunk' "$global_md"
+check "los desplegables se abren en beforeprint" \
+  grep -q 'beforeprint' "$global_md"
+check "/walkthrough defiere la estructura al global" \
+  grep -q 'Walkthroughs y code reviews en el scriptorium' "$wt_cmd"
+check "/code-review-scriptorium defiere la estructura al global" \
+  grep -q 'Walkthroughs y code reviews en el scriptorium' "$cr_cmd"
+check "/code-review-scriptorium ya no fija su propia estructura" \
+  bash -c "! grep -q '^Estructura:' '$cr_cmd'"
+check "/code-review-scriptorium sigue siendo acta, no segunda review" \
+  grep -q 'no una segunda review' "$cr_cmd"
+
 # ── 7. Permisos ───────────────────────────────────────────────────────────────
 section "Permisos de ficheros"
 check "~/.claude/hooks/notify-stop.sh ejecutable"      test -x "$HOME/.claude/hooks/notify-stop.sh"
@@ -275,6 +307,12 @@ if [[ "$PLATFORM" == "macos" ]]; then
     "$DOTFILES/macos/com.fran.scriptorium.plist"
   check "plantilla browse tiene export a PDF" grep -q 'function exportPdf' "$DOTFILES/macos/scriptorium-browse.html"
   check "plantilla browse tiene tiempo de lectura" grep -q 'function readingTime' "$DOTFILES/macos/scriptorium-browse.html"
+  check "plantilla browse tiene índice de secciones" grep -q 'function buildToc' "$DOTFILES/macos/scriptorium-browse.html"
+  check "el índice resalta la sección visible" grep -q 'function spyToc' "$DOTFILES/macos/scriptorium-browse.html"
+  check "el índice no se duplica si el doc trae el suyo" \
+    grep -q "nav a\[href\^=.#.\]" "$DOTFILES/macos/scriptorium-browse.html"
+  check "el índice se puede ocultar y recuerda el estado" \
+    grep -q "TOC_KEY = 'scriptorium.toc'" "$DOTFILES/macos/scriptorium-browse.html"
   check "plantilla browse arranca con el catálogo colapsado" grep -q '<body class="nav-collapsed">' "$DOTFILES/macos/scriptorium-browse.html"
   check "plantilla browse ordena el catálogo por fecha" \
     grep -q 'node.children.sort((a,b) => (b.isDir - a.isDir) || (ts(b) - ts(a))' "$DOTFILES/macos/scriptorium-browse.html"
