@@ -169,9 +169,40 @@ body.nav-collapsed .catalog{display:none}
 .docbar .share{display:inline-flex;align-items:center;gap:8px}
 .docbar .share-msg{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted)}
 .docbar .share-msg.error{color:#e5484d}
-.frame{flex:1;width:100%;border:none;background:var(--surface)}
+.frame{width:100%;height:100%;border:none;background:var(--surface)}
+
+/* ---------- índice del documento ---------- */
+.docbody{flex:1;display:grid;grid-template-columns:250px 1fr;min-height:0}
+.docbody.no-toc,body.toc-off .docbody{grid-template-columns:1fr}
+.toc{
+  border-right:1px solid var(--line);background:var(--surface);
+  overflow-y:auto;padding:16px 14px 28px;min-height:0;
+  scrollbar-width:thin;scrollbar-color:var(--line) transparent;
+}
+.docbody.no-toc .toc,body.toc-off .toc{display:none}
+.toc-h{
+  font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--faint);padding:0 10px 12px;
+}
+.toc-list{display:flex;flex-direction:column;border-left:1px solid var(--line)}
+.toc-list a{
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;line-height:1.45;
+  color:var(--muted);text-decoration:none;padding:7px 12px;margin-left:-1px;
+  border-left:2px solid transparent;border-radius:0 8px 8px 0;
+  transition:background .16s,color .16s;
+}
+.toc-list a:hover{color:var(--ink);background:var(--surface-2)}
+.toc-list a.on{color:var(--accent);background:var(--accent-soft);border-left-color:var(--accent)}
+.toc-list a.l2{padding-left:16px}
+.toc-list a.l3{padding-left:28px;font-size:11px;color:var(--faint)}
+.toc-list a.l3:hover{color:var(--muted)}
+.toc-list a.gap{margin-top:11px}
 
 /* ---------- mobile ---------- */
+@media(max-width:1080px){
+  .docbody{grid-template-columns:1fr}
+  .toc,#toc-btn{display:none}
+}
 @media(max-width:760px){
   .body{grid-template-columns:1fr}
   .catalog{border-right:none}
@@ -272,10 +303,24 @@ function setCatalog(collapsed){
 
 navBtn.onclick = () => setCatalog(!catalogCollapsed());
 
+const TOC_KEY = 'scriptorium.toc';
+let tocOpen = true;
+try { tocOpen = localStorage.getItem(TOC_KEY) !== '0'; } catch (e) {}
+document.body.classList.toggle('toc-off', !tocOpen);
+
+function setToc(open){
+  tocOpen = open;
+  document.body.classList.toggle('toc-off', !open);
+  try { localStorage.setItem(TOC_KEY, open ? '1' : '0'); } catch (e) {}
+  const btn = document.getElementById('toc-btn');
+  if (btn) btn.title = open ? 'Ocultar índice' : 'Mostrar índice';
+}
+
 const FOLDER = '<svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>';
 const DOC    = '<svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/></svg>';
 const CHEV   = '<svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>';
 const SHARE  = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5 15.4 17.5"/><path d="M15.4 6.5 8.6 10.5"/></svg>';
+const LIST   = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12"/><path d="M9 12h12"/><path d="M9 18h12"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/></svg>';
 const TRASH  = '<svg viewBox="0 0 24 24" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
 
 /* ────────── botón «compartir» de la docbar (bridge en /-/share) ────────── */
@@ -625,6 +670,7 @@ function openDoc(node){
     <div class="docview">
       <div class="docbar">
         <span class="name">${node.name}</span>
+        ${isHtml(node) ? `<button class="back" id="toc-btn" title="${tocOpen ? 'Ocultar índice' : 'Mostrar índice'}" hidden>${LIST}índice</button>` : ''}
         ${isHtml(node) ? `<button class="back" id="pdf" title="Imprimir → Guardar como PDF">${pdf}PDF</button>` : ''}
         ${isShareable(node) ? `<span class="share" id="share" data-abs="${node.abs}">
           <a class="share-link" id="share-link" target="_blank" rel="noopener" hidden>artifact</a>
@@ -634,13 +680,18 @@ function openDoc(node){
         <a href="${src}" target="_blank" rel="noopener">${ext}pestaña nueva</a>
         <button class="back" id="back">${back}catálogo</button>
       </div>
-      <iframe class="frame" src="${src}" title="${node.name}"></iframe>
+      <div class="docbody no-toc" id="docbody">
+        <aside class="toc" id="toc" aria-label="Índice del documento"></aside>
+        <iframe class="frame" src="${src}" title="${node.name}"></iframe>
+      </div>
     </div>`;
   document.body.classList.add('reading');
   if (isHtml(node)){
     const fr = readerEl.querySelector('.frame');
-    fr.addEventListener('load', () => readingTime(fr));
+    fr.addEventListener('load', () => { readingTime(fr); buildToc(fr); });
   }
+  const t = document.getElementById('toc-btn');
+  if (t) t.onclick = () => setToc(!tocOpen);
   const b = document.getElementById('back');
   if (b) b.onclick = () => document.body.classList.remove('reading');
   const p = document.getElementById('pdf');
@@ -675,6 +726,77 @@ function readingTime(frame){
     if (h1) h1.insertAdjacentElement('afterend', el);
     else doc.body.insertAdjacentElement('afterbegin', el);
   } catch (e) {}
+}
+
+// Índice de secciones del documento abierto, en su propia columna del lector. Se
+// construye leyendo los h1/h2/h3 del iframe (mismo origen) sin tocar el artículo:
+// los enlaces guardan la referencia al nodo, así que no hace falta inyectarle ids
+// ni anclas. Tres detalles que no son obvios:
+//   - Los títulos que viven dentro de un <details> cerrado no tienen caja, así que
+//     al saltar se abren todos sus ancestros antes de medir el desplazamiento.
+//   - El resaltado escucha el scroll del iframe, no el de esta página: el artículo
+//     scrollea dentro de su propio documento.
+//   - Si el documento ya trae su propio <nav> de anclas, la columna no se pinta:
+//     dos índices a la vez sobran y el suyo suele estar mejor rotulado.
+const tocLevel = h => +h.tagName[1];
+
+function tocHeadings(doc){
+  return [...doc.body.querySelectorAll('h1,h2,h3')]
+    .filter(h => h.textContent.trim() && !h.closest('nav'));
+}
+
+function buildToc(frame){
+  const wrap = document.getElementById('toc');
+  const box  = document.getElementById('docbody');
+  const btn  = document.getElementById('toc-btn');
+  if (!wrap || !box) return;
+  let doc, win;
+  try { doc = frame.contentDocument; win = frame.contentWindow; } catch (e) { return; }
+  if (!doc || !doc.body) return;
+  if (doc.querySelectorAll('nav a[href^="#"]').length >= 3) return;
+  const heads = tocHeadings(doc);
+  if (heads.length < 2) return;
+  wrap.innerHTML = '<div class="toc-h">índice</div><nav class="toc-list"></nav>';
+  const nav = wrap.querySelector('.toc-list');
+  const links = heads.map((h, i) => {
+    const a = document.createElement('a');
+    a.href = 'javascript:void 0';
+    a.className = 'l' + tocLevel(h) + (i && tocLevel(h) < tocLevel(heads[i-1]) ? ' gap' : '');
+    a.textContent = h.textContent.replace(/\s+/g, ' ').trim();
+    a.onclick = e => { e.preventDefault(); jumpTo(win, h); };
+    nav.appendChild(a);
+    return a;
+  });
+  box.classList.remove('no-toc');
+  if (btn) btn.hidden = false;
+  spyToc(win, heads, links);
+}
+
+function jumpTo(win, el){
+  for (let d = el.closest('details'); d; d = d.parentElement && d.parentElement.closest('details')) d.open = true;
+  const top = el.getBoundingClientRect().top + win.scrollY - 16;
+  win.scrollTo({top: Math.max(0, top), behavior:'smooth'});
+}
+
+function spyToc(win, heads, links){
+  let active = -1, queued = false;
+  const paint = () => {
+    queued = false;
+    let i = 0;
+    heads.forEach((h, n) => {
+      const r = h.getBoundingClientRect();
+      if (r.height && r.top <= 140) i = n;
+    });
+    if (i === active) return;
+    active = i;
+    links.forEach((a, n) => a.classList.toggle('on', n === i));
+    links[i].scrollIntoView({block:'nearest'});
+  };
+  const tick = () => { if (!queued){ queued = true; win.requestAnimationFrame(paint); } };
+  win.addEventListener('scroll', tick, {passive:true});
+  win.addEventListener('resize', tick, {passive:true});
+  win.document.addEventListener('toggle', tick, true);
+  paint();
 }
 
 // Maquetación de impresión inyectada en el iframe antes de imprimir. Las páginas
