@@ -70,6 +70,97 @@ Cuando generes HTML como **output principal** para el usuario (artefactos de `/r
   - Debe verse bien **embebido en un iframe estrecho**: layout responsive, nada de frame-busting ni `target="_top"`, sin asumir que es la ventana top-level (no dependas de `window.top`, popups, ni de la URL de la barra).
   - El dark-mode fijo y el ser autocontenido (reglas de arriba) ya lo hacen consistente con el visor; mantenlos.
 
+## Walkthroughs y code reviews en el scriptorium
+
+Aplica **siempre que pida un walkthrough o una review** en HTML, venga por `/walkthrough`,
+`/code-review-scriptorium` o a pelo. Hereda todas las reglas de `## Output en HTML` (tokens, dark fijo,
+tipografía, SVG, `@media print`, rotación a `archive/`, iframe estrecho) y añade la estructura, que no es
+negociable: quiero el mismo documento cada vez, no una variación creativa.
+
+### Esqueleto, en este orden
+
+1. **Cabecera** — `<header class="doc">` con eyebrow, título, y una `<ul class="meta">` en grid de
+   metadatos (PR con enlace, autor, ramas, estado, fecha, diff `+N / −M`, tarea, y si hubo `--fix`/`--comment`).
+2. **Veredicto en una frase**, en un bloque coloreado por gravedad. Una frase de verdad, no un párrafo.
+3. **Tally** — chips con el recuento: hallazgos, cuántos por severidad, descartados, comentarios propuestos.
+4. **Walkthrough** — desplegable (ver abajo).
+5. **Hallazgos** — uno por `<article>`, de más grave a menos.
+6. **Alcance de la review** — dos columnas: qué se cubrió / qué queda fuera.
+7. **Comprobado y descartado** — tabla de lo que se miró y no sobrevivió. Sin esto el informe se lee como
+   «está todo bien» cuando dice «esto es lo que se miró».
+8. **Footer** con fecha y de dónde salieron los hallazgos.
+
+### El walkthrough
+
+Un `<details class="wt">` exterior **colapsado**, y dentro un `<details class="file">` por fichero, también
+colapsado. Nunca un muro de 1.000 líneas abierto.
+
+- **Abre por lo que NO está en el diff** cuando hay algo central que no cambia (el hook que ya existía, el
+  componente que solo se consume). Es lo primero que hay que saber para leer el resto.
+- **Tabla resumen** de todos los ficheros: ruta, `+N / −M`, y una línea de qué papel juega cada uno.
+- **Agrupa en bandas `.groupbar`** por orden de lectura, no alfabético: componente compartido → consumidores
+  → tests → infra/ruido. Cierra con una banda «Lectura de conjunto» de un párrafo.
+- **Por fichero: el hunk primero, la prosa después.** El hunk en un `<pre>` con `+` verde, `-` rojo,
+  contexto apagado y la cabecera `@@` en azul.
+- **Separa el reflow del cambio real, siempre y de forma visible.** Un bloque `.reflow` que diga «Reflow, no
+  cambio» y explique por qué es equivalente (precedencia explicitada, Prettier colapsando líneas, `{" "}`
+  para conservar un espacio). Un diff de 16 líneas donde solo una es funcional tiene que leerse así.
+- **Cuando N ficheros repiten un patrón, explica la receta una vez** y pon una tabla con lo que los
+  diferencia. No N bloques calcados.
+- **Enlaza al hallazgo** con un chip `.xref` («→ hallazgo 03») que apunte a `#f03` desde cada punto del
+  walkthrough donde aparezca. El walkthrough explica el código; el hallazgo juzga.
+
+### Los hallazgos
+
+Cada uno `<article id="fNN">`, con: badges de **severidad y confianza** separados, `fichero:línea` enlazado
+al blob **del head de la PR**, el hunk relevante, con qué entrada o estado concreto falla, y el fix
+propuesto en un bloque `.fix`.
+
+Si la review la hizo un motor (el built-in de Anthropic, otro agente), el HTML es **acta**: no añadas
+hallazgos, severidades ni conclusiones que no diera. Si crees que le falta algo, dímelo en el chat.
+
+### Comentario propuesto para la PR
+
+**Cada hallazgo lleva su comentario listo para pegar**, en un bloque `.prcomment` con tres partes: el
+anclaje, el texto en markdown, y un botón «copiar». Si el hallazgo toca dos ficheros, dos comentarios.
+
+- **Anclaje explícito**: `fichero · línea · lado derecho del diff · hunk @@ …`.
+- **Sucinto, o no se lee.** Presupuesto: el más largo ~130 palabras, y la mayoría en 3-5 líneas. Fuera
+  preámbulos («el detalle es que…»), rutas que el anclaje ya da, y listas de viñetas que caben en una frase
+  con comas. Dentro, intactos, los datos verificables que lo hacen accionable: `fichero:línea`, nombres de
+  constantes y de variables reales, el número concreto.
+- **Bloques ` ```suggestion ` solo si compilan.** Usa los nombres de variable **leídos del head**, no los
+  que parezcan lógicos. Nunca propongas un suggestion que rompa un test o que necesite tocar una línea
+  fuera del hunk — eso va en prosa.
+- **No publiques nada** sin `--comment` explícito. El informe dice que están redactados y sin publicar.
+- Comentarios y PRs en español, como el resto.
+
+### Verificaciones obligatorias antes de dar el fichero por bueno
+
+- **Lee los ficheros en el head de la PR, no solo el diff**, y confirma que cada `fichero:línea` cae donde
+  dices. `gh api "repos/<r>/contents/<path>?ref=<branch>"` y a contar.
+- **Confirma que cada anclaje cae dentro de un hunk.** GitHub no acepta un comentario inline fuera del
+  diff, y un anclaje muerto convierte el informe en trabajo tirado.
+- **Valida el balanceo de etiquetas** del HTML con un parser antes de cerrar. Cero errores, nada sin cerrar.
+
+### Mecánica del desplegable
+
+- Un `<details>` cerrado **no se abre con CSS al imprimir**. Añade un script inline que en `beforeprint`
+  los abra guardando su estado y en `afterprint` lo restaure. Sin eso el PDF sale sin walkthrough.
+- Oculta los botones «copiar» en `@media print`.
+- El botón copia con `navigator.clipboard` y **cae a seleccionar el rango** si el portapapeles está
+  bloqueado — el scriptorium sirve el HTML dentro de un iframe.
+- Marcadores `▸` que rotan al abrir, en el verde `--accent`. En `@media print`, sin marcador.
+
+### Componentes visuales
+
+Sobre los tokens de `## Output en HTML`, con estos nombres de clase para que el documento salga igual cada
+vez: `.wt` / `.file` (desplegables), `.groupbar` (banda de grupo, mono en `--accent`), `.reflow` (aviso con
+barra lateral `--faint`), `.xref` (chip amarillo al hallazgo), `.finding` + `.sev-*` (borde izquierdo por
+severidad), `.badge` + `.b-*` (severidad/confianza), `.fix` (bloque verde), `.prcomment` (borde izquierdo
+azul) con `.anchor` + `pre.cmt` + `button.copy`, `.panel` (alcance y descartados), `.tblwrap` (toda tabla
+scrollea dentro de su caja, el body nunca en horizontal).
+
 ## Commits y trabajo
 
 - **Commitea al terminar la tarea, sin esperar a que te lo pidan.** Cuando acabes un trabajo y el working tree tenga cambios, agrúpalos en commits atómicos y commitéalos con la misma calidad que `/commit`: un cambio lógico por commit, mensaje `tipo(scope): resumen` en imperativo, el porqué en el cuerpo cuando no sea obvio. No dejes cambios colgando en el working tree como estado final.

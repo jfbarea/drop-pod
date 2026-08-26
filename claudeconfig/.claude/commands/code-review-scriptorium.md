@@ -21,19 +21,16 @@ Tres límites que sí pongo yo:
 
 ## 2. Métemelo en el scriptorium
 
-Con el resultado del built-in en la mano, genera el informe en `~/src/html/<repo-name>/code-review-<slug>.html` (para un PR, `code-review-pr-<número>-<slug>.html`), siguiendo TODAS las reglas de HTML del `CLAUDE.md` global: estilo scriptorium, dark fijo, tipografía, SVG para cualquier diagrama, bloque `@media print`, **rotación a `archive/` antes de escribir**, y que se vea bien embebido en un iframe estrecho.
+Con el resultado del built-in en la mano, genera el informe en `~/src/html/<repo-name>/code-review-<slug>.html` (para un PR, `code-review-pr-<número>-<slug>.html`).
 
-Genera el informe **también cuando la review sale limpia**: una review sin hallazgos, archivada y con su alcance escrito, también es información.
+La estructura y los componentes del documento los fija la sección **`## Walkthroughs y code reviews en el scriptorium`** del `CLAUDE.md` global, y no se negocian aquí: esqueleto de ocho apartados en ese orden, walkthrough en desplegables colapsados, hallazgos con severidad y confianza separadas, comentario de PR listo para pegar por hallazgo, verificaciones de anclaje contra el head, y las reglas de `## Output en HTML` (estilo scriptorium, dark fijo, tipografía, SVG, `@media print`, **rotación a `archive/` antes de escribir**, iframe estrecho). Este comando solo aporta el ámbito, el nombre del fichero y de dónde salen los hallazgos.
 
-El HTML es un acta del resultado, no una segunda review: no añadas findings, severidades ni conclusiones que el built-in no haya dado. Para incrustar los hunks, lee el diff del mismo ámbito que revisó el motor.
+Genera el informe **también cuando la review sale limpia**: una review sin hallazgos, archivada y con su alcance escrito, también es información. En ese caso el tally va a cero, los apartados de hallazgos y de comentarios propuestos lo dicen explícitamente, y el peso del documento lo lleva el walkthrough más «comprobado y descartado».
 
-Estructura:
+El HTML es un acta del resultado, no una segunda review: no añadas findings, severidades ni conclusiones que el built-in no haya dado. Para incrustar los hunks, lee el diff del mismo ámbito que revisó el motor, y los ficheros completos en el head para verificar cada `fichero:línea`.
 
-1. **Cabecera**: ámbito revisado (PR con título, autor, ramas, estado y enlace, o el rango del diff local), fecha, ficheros y líneas tocadas, y el veredicto en una frase.
-2. **Findings**, uno por bloque, ordenados de más grave a menos. Cada uno con: severidad y confianza visibles usando los colores semánticos (rojo crítico, amarillo warning, azul info) sobre los tokens del scriptorium, `fichero:línea` enlazado, el hunk relevante en un `pre`, con qué entrada o estado concreto falla, y el fix propuesto.
-3. **Alcance de la review**: qué cubrió el motor y qué queda explícitamente fuera (build, typecheck y tests los cubre CI, no esta review). Sin esto el informe se lee como "está todo bien" cuando en realidad dice "esto es lo que se miró".
-4. **Descartados**, si el motor los expuso: qué se marcó y por qué no sobrevivió. Es lo que hace la review auditable.
+En el apartado de alcance, deja explícito que build, typecheck y tests los cubre CI y no esta review.
 
-Si la review corrió con `--fix`, el informe documenta los findings **y** lo que se aplicó al working tree, distinguiendo una cosa de la otra.
+Si la review corrió con `--fix`, el informe documenta los findings **y** lo que se aplicó al working tree, distinguiendo una cosa de la otra, y la cabecera lo refleja.
 
 Al terminar, dime la ruta del fichero (el scriptorium lo cataloga solo).
