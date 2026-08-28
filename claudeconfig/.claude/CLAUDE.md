@@ -70,6 +70,26 @@ Cuando generes HTML como **output principal** para el usuario (artefactos de `/r
   - Debe verse bien **embebido en un iframe estrecho**: layout responsive, nada de frame-busting ni `target="_top"`, sin asumir que es la ventana top-level (no dependas de `window.top`, popups, ni de la URL de la barra).
   - El dark-mode fijo y el ser autocontenido (reglas de arriba) ya lo hacen consistente con el visor; mantenlos.
 
+### El scriptorium es personal
+
+El scriptorium corre en mi Mac. `http://scriptorium/…`, `~/src/html/…` y cualquier `file://` de esos
+documentos existen **solo para mí**: nadie más los puede abrir, ni siquiera con el enlace. Compartir uno es
+una decisión mía y va por el botón «Compartir» del visor, que lo publica como Artifact de claude.ai. Si ese
+enlace existe y yo te lo doy, úsalo; no lo generes por tu cuenta ni des por hecho que existe.
+
+De cara a todo texto que salga hacia fuera — descripciones y comentarios de PR, issues y comentarios de
+ClickUp, mensajes de commit, cualquier cosa dirigida a otra persona:
+
+- **No enlaces ni cites rutas del scriptorium**, y no remitas a uno de sus documentos como referencia («los
+  detalles están en el walkthrough», «ver el informe de review»). Para quien lo lee es un enlace roto.
+- **El texto se sostiene solo.** Si un dato del documento hace falta para entender lo que escribes
+  (`fichero:línea`, el nombre de la constante, el número concreto, el input que rompe), cópialo ahí.
+- Al revés sí: el documento del scriptorium enlaza al PR, al issue y al blob de GitHub, que eso lo abre
+  cualquiera.
+
+En el chat conmigo, en cambio, la ruta local es lo normal: dámela siempre al terminar de generar un
+documento.
+
 ## Walkthroughs y code reviews en el scriptorium
 
 Aplica **siempre que pida un walkthrough o una review** en HTML, venga por `/walkthrough`,
@@ -133,6 +153,8 @@ anclaje, el texto en markdown, y un botón «copiar». Si el hallazgo toca dos f
   que parezcan lógicos. Nunca propongas un suggestion que rompa un test o que necesite tocar una línea
   fuera del hunk — eso va en prosa.
 - **No publiques nada** sin `--comment` explícito. El informe dice que están redactados y sin publicar.
+- **Se sostiene solo.** El comentario se lee en GitHub, donde el informe del scriptorium no existe: no lo
+  enlaces ni remitas a él, copia dentro el dato que haga falta (`### El scriptorium es personal`).
 - Comentarios y PRs en español, como el resto.
 
 ### Verificaciones obligatorias antes de dar el fichero por bueno
@@ -174,6 +196,7 @@ scrollea dentro de su caja, el body nunca en horizontal).
 - **En cualquier otra rama, el push está permitido** cuando el usuario lo pida (explícitamente o como parte de un flujo que lo requiera, p. ej. abrir una PR). No hace falta confirmación extra. Sigue sin usarse `--no-verify`.
 - Si el hook no puede determinar a qué rama apunta el push (variables, subshells, HEAD desacoplado), lo bloquea por precaución: usa un refspec explícito (`git push origin mi-rama`).
 - **Pull requests en español.** Cuando crees una PR, todo su texto (título, descripción, comentarios, checklist…) va en español.
+- **Nada de enlaces al scriptorium en una PR** (ni en su descripción, ni en comentarios, ni en el mensaje de commit): es un servidor local que solo abro yo. Lo que haga falta para entender el texto, va copiado dentro. Ver `### El scriptorium es personal`.
 
 ## Cómo se actualiza este fichero
 

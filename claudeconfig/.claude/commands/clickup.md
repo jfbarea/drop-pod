@@ -11,4 +11,5 @@ Recibes la URL (o el ID) del issue en `$ARGUMENTS`. Si no hay argumento, pídeme
    - bug → sigue el flujo de `/debug`, usando el síntoma/descripción del issue como punto de partida.
 6. Respeta los gates de esos flujos: enséñame el hito/plan y espera mi OK antes de construir.
 7. No comentes ni cambies el estado de la tarea en ClickUp salvo que te lo pida explícitamente. Al terminar, recuérdame el `taskId` por si quiero actualizarlo a mano.
+   - Si te pido que comente, el comentario se sostiene solo: sin enlaces ni referencias al scriptorium, que es local y solo lo abro yo (ver `### El scriptorium es personal` en el `CLAUDE.md` global). El `fichero:línea`, el nombre real de la constante o el input que rompe van copiados dentro; enlazar el PR o el blob de GitHub sí vale.
 8. El flujo seguido (/feature o /debug) incluye su walkthrough para el scriptorium al final; no lo omitas por venir de ClickUp.

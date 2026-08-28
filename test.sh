@@ -210,6 +210,15 @@ check "/code-review-scriptorium ya no fija su propia estructura" \
   bash -c "! grep -q '^Estructura:' '$cr_cmd'"
 check "/code-review-scriptorium sigue siendo acta, no segunda review" \
   grep -q 'no una segunda review' "$cr_cmd"
+check "el scriptorium se declara personal" \
+  grep -q '^### El scriptorium es personal' "$global_md"
+check "nada de enlaces al scriptorium en una PR" \
+  grep -q 'Nada de enlaces al scriptorium en una PR' "$global_md"
+check "el comentario de PR no remite al informe" \
+  grep -q 'El comentario se lee en GitHub' "$global_md"
+check "/clickup no enlaza el scriptorium al comentar" \
+  grep -q 'sin enlaces ni referencias al scriptorium' \
+    "$DOTFILES/claudeconfig/.claude/commands/clickup.md"
 
 # ── 7. Permisos ───────────────────────────────────────────────────────────────
 section "Permisos de ficheros"
