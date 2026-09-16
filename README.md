@@ -93,7 +93,7 @@ Luego abre `nvim` — lazy.nvim instala los plugins en el primer arranque.
 
 ### Recomendados (marcados en los archivos de paquetes)
 
-`fd` · `gh` (GitHub CLI) · `wget` · `zoxide` · `mise` · `htop` · `tldr` · `tree`
+`fd` · `gh` (GitHub CLI) · `wget` · `zoxide` · `mise` · `htop` · `tldr` · `tree` · `markdown_py`
 
 ### Globals de npm
 
