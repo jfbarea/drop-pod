@@ -118,6 +118,13 @@ section "Globals de npm"
 check "diffity" command -v diffity
 check "diffity doctor" bash -c "cd '$DOTFILES' && diffity doctor 2>&1 | grep -q 'All checks passed'"
 
+# ── 5c. Venv del scriptorium ─────────────────────────────────────────────────
+section "Venv del scriptorium"
+SCRIPTORIUM_VENV="$HOME/.local/share/scriptorium/venv"
+check "el venv existe"          test -x "$SCRIPTORIUM_VENV/bin/python"
+check "su intérprete arranca"   "$SCRIPTORIUM_VENV/bin/python" -c "import sys"
+check "import markdown"         "$SCRIPTORIUM_VENV/bin/python" -c "import markdown"
+
 # ── 6. Symlinks de dotfiles ──────────────────────────────────────────────────
 section "Symlinks de dotfiles"
 check_symlink "~/.gitconfig"                   "$HOME/.gitconfig"                    "$DOTFILES/git/.gitconfig"

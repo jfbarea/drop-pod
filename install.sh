@@ -360,6 +360,63 @@ install_diffity() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Venv del scriptorium
+# ─────────────────────────────────────────────────────────────────────────────
+
+SCRIPTORIUM_VENV="$HOME/.local/share/scriptorium/venv"
+SCRIPTORIUM_VENV_PACKAGES=(markdown)
+
+scriptorium_base_python() {
+  local candidate
+  for candidate in /opt/homebrew/bin/python3 /usr/local/bin/python3 python3; do
+    if command -v "$candidate" &>/dev/null; then
+      command -v "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+scriptorium_venv_is_usable() {
+  "$SCRIPTORIUM_VENV/bin/python" -c "import sys" &>/dev/null
+}
+
+setup_scriptorium_venv() {
+  local base_python
+  if ! base_python="$(scriptorium_base_python)"; then
+    err "No hay ningún python3 disponible para crear el venv del scriptorium"
+    return 1
+  fi
+
+  if [[ -e "$SCRIPTORIUM_VENV" ]] && ! scriptorium_venv_is_usable; then
+    warn "El venv del scriptorium está roto (¿upgrade de python?) — se recrea"
+    mv "$SCRIPTORIUM_VENV" "$SCRIPTORIUM_VENV.broken-$(date +%Y%m%d_%H%M%S)"
+  fi
+
+  if [[ ! -e "$SCRIPTORIUM_VENV" ]]; then
+    step "Creando el venv del scriptorium ($base_python)..."
+    mkdir -p "$(dirname "$SCRIPTORIUM_VENV")"
+    "$base_python" -m venv "$SCRIPTORIUM_VENV"
+  fi
+
+  local -a missing=()
+  local package
+  for package in "${SCRIPTORIUM_VENV_PACKAGES[@]}"; do
+    "$SCRIPTORIUM_VENV/bin/python" -c "import $package" &>/dev/null || missing+=("$package")
+  done
+
+  if [[ ${#missing[@]} -eq 0 ]]; then
+    ok "venv del scriptorium al día (${SCRIPTORIUM_VENV_PACKAGES[*]})"
+    return 0
+  fi
+
+  step "Instalando en el venv del scriptorium: ${missing[*]}"
+  "$SCRIPTORIUM_VENV/bin/pip" install --quiet --upgrade pip
+  "$SCRIPTORIUM_VENV/bin/pip" install --quiet --upgrade "${missing[@]}"
+  ok "venv del scriptorium listo (${SCRIPTORIUM_VENV_PACKAGES[*]})"
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Symlink helpers
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -759,6 +816,8 @@ fi
 if [[ "$PLATFORM" == "macos" ]]; then
   run_step "worktree-cleanup" setup_worktree_cleanup
 fi
+
+run_step "scriptorium-venv" setup_scriptorium_venv
 
 # Servidor web local "scriptorium" (Caddy sirviendo ~/src/html): LaunchAgent en
 # :8080 bajo macOS, unit de usuario de systemd en :8081 bajo Linux.

@@ -105,6 +105,32 @@ No están ni en Homebrew ni en apt, así que `install.sh` los instala con `npm i
   en `:5391` y abre el navegador; `diffity doctor` comprueba que puede arrancar y
   `diffity update` se actualiza solo.
 
+### Venv del scriptorium
+
+`install.sh` crea un virtualenv en `~/.local/share/scriptorium/venv` con las dependencias
+Python que necesitan los scripts del scriptorium. Ahora mismo, `markdown`.
+
+Existe porque ningún intérprete del sistema admite instalar librerías: en macOS `python3`
+resuelve a `/usr/bin/python3` (3.9, protegido por SIP) y el de Homebrew está marcado como
+*externally managed* (PEP 668). El venv se construye con el `python3` más moderno que haya
+(`/opt/homebrew/bin/python3` en macOS, el de apt en Linux) y se recrea solo si un upgrade
+de Python deja su intérprete roto.
+
+Para usarlo desde un script, apunta el shebang al intérprete del venv:
+
+```python
+#!/Users/<tu-usuario>/.local/share/scriptorium/venv/bin/python
+import markdown
+```
+
+Para añadir una dependencia nueva, mete el nombre en `SCRIPTORIUM_VENV_PACKAGES` de
+`install.sh` y vuelve a ejecutarlo.
+
+La fórmula `python-markdown` del Brewfile (`python3-markdown` en apt) es otra cosa: aporta
+el CLI `markdown_py` para convertir `.md` a `.html` desde shell. En macOS, Homebrew la
+instala en un virtualenv propio y solo enlaza el binario, así que **no** hace `import
+markdown` disponible en ningún sitio.
+
 ---
 
 ## Configuración de Git

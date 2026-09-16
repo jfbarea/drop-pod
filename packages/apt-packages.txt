@@ -22,6 +22,7 @@ tree
 xclip
 caddy
 python3-dbus
+python3-venv
 python3-markdown
 
 # Notes — installed from GitHub Releases by install.sh (not in apt or outdated):
