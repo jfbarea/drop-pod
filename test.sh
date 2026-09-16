@@ -113,6 +113,11 @@ check "shell por defecto es zsh" default_shell_is_zsh
 section "nvm"
 check "~/.nvm existe" test -d "$HOME/.nvm"
 
+# ── 5b. Globals de npm ───────────────────────────────────────────────────────
+section "Globals de npm"
+check "diffity" command -v diffity
+check "diffity doctor" bash -c "cd '$DOTFILES' && diffity doctor 2>&1 | grep -q 'All checks passed'"
+
 # ── 6. Symlinks de dotfiles ──────────────────────────────────────────────────
 section "Symlinks de dotfiles"
 check_symlink "~/.gitconfig"                   "$HOME/.gitconfig"                    "$DOTFILES/git/.gitconfig"

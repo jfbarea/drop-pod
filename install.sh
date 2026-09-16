@@ -338,6 +338,28 @@ install_nvm() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
+# diffity
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Visor de diffs estilo GitHub que se sirve en local. No está en brew ni en apt:
+# solo npm global, igual que corepack en Linux. Las skills que lo acompañan
+# (/diffity-diff, /diffity-review…) vienen versionadas en claudeconfig/, así que
+# aquí solo hace falta el binario.
+install_diffity() {
+  if command -v diffity &>/dev/null; then
+    ok "diffity already installed ($(diffity --version))"
+    return 0
+  fi
+  step "Installing diffity..."
+  if [[ "$PLATFORM" == "macos" ]]; then
+    npm install -g diffity
+  else
+    sudo npm install -g diffity
+  fi
+  ok "diffity installed"
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Symlink helpers
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -699,6 +721,9 @@ run_step "oh-my-zsh" install_omz
 
 step "Installing nvm..."
 run_step "nvm" install_nvm
+
+step "Installing diffity..."
+run_step "diffity" install_diffity
 
 step "Symlinking dotfiles..."
 

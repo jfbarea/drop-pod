@@ -95,6 +95,16 @@ Luego abre `nvim` — lazy.nvim instala los plugins en el primer arranque.
 
 `fd` · `gh` (GitHub CLI) · `wget` · `zoxide` · `mise` · `htop` · `tldr` · `tree`
 
+### Globals de npm
+
+No están ni en Homebrew ni en apt, así que `install.sh` los instala con `npm install -g`
+(con `sudo` en Linux, donde el prefijo global es del sistema):
+
+- `corepack` — solo Linux; el paquete `nodejs` de apt ya no lo trae de forma fiable.
+- `diffity` — visor de diffs estilo GitHub servido en local. `diffity` levanta un servidor
+  en `:5391` y abre el navegador; `diffity doctor` comprueba que puede arrancar y
+  `diffity update` se actualiza solo.
+
 ---
 
 ## Configuración de Git
