@@ -427,8 +427,14 @@ if [[ "$PLATFORM" == "macos" ]]; then
   if [[ "$TAILSCALE" == "0" ]]; then
     skip "Tailscale" "DOTFILES_TAILSCALE=0"
   elif [[ -d "/Applications/Tailscale.app" ]]; then
-    check "shields-up activo" \
-      bash -c '"/Applications/Tailscale.app/Contents/MacOS/Tailscale" debug prefs | jq -e ".ShieldsUp == true"'
+    # El CLI vive dentro del bundle: invocarlo lanza la app y macOS pide permisos
+    # en cada ejecución. Fuera del run normal; se comprueba bajo petición.
+    if [[ "${DOTFILES_TAILSCALE_PREFS:-0}" == "1" ]]; then
+      check "shields-up activo" \
+        bash -c '"/Applications/Tailscale.app/Contents/MacOS/Tailscale" debug prefs | jq -e ".ShieldsUp == true"'
+    else
+      skip "shields-up activo" "DOTFILES_TAILSCALE_PREFS=1 para comprobarlo; el CLI pide permisos"
+    fi
   else
     skip "Tailscale" "no instalado en este Mac"
   fi
