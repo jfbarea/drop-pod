@@ -182,6 +182,23 @@ body.nav-collapsed .catalog{display:none}
 .docbar .share-msg.error{color:#e5484d}
 .frame{width:100%;height:100%;border:none;background:var(--surface)}
 
+.findbar{display:flex;align-items:center;gap:10px;padding:8px 22px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.findbar .mag{width:14px;height:14px;stroke:var(--muted);fill:none;flex:none}
+.findbar input{
+  flex:1;min-width:0;font-family:"JetBrains Mono",monospace;font-size:12.5px;
+  color:var(--ink);background:transparent;border:none;outline:none;
+}
+.findbar input::placeholder{color:var(--faint)}
+.findbar .find-count{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--muted);white-space:nowrap}
+.findbar .find-count.none{color:#e5484d}
+.findbar button{
+  flex:none;display:inline-flex;align-items:center;justify-content:center;
+  width:24px;height:24px;border:none;border-radius:7px;background:transparent;
+  color:var(--muted);cursor:pointer;transition:color .14s,background .14s;
+}
+.findbar button:hover{color:var(--accent);background:var(--surface)}
+.findbar button svg{width:13px;height:13px;stroke:currentColor;fill:none}
+
 /* ---------- índice del documento ---------- */
 .docbody{flex:1;display:grid;grid-template-columns:250px 1fr;min-height:0}
 .docbody.no-toc,body.toc-off .docbody{grid-template-columns:1fr}
@@ -268,7 +285,7 @@ body.nav-collapsed .catalog{display:none}
     <section class="reader" id="reader">
       <div class="empty">
         <div class="glyph">¶</div>
-        <p>Busca con <code>⌘K</code> o abre el catálogo con <code>⌘B</code>. Los <code>.html</code> se abren aquí mismo.</p>
+        <p>Busca con <code>⌘K</code> o abre el catálogo con <code>⌘B</code>. Los <code>.html</code> se abren aquí mismo, y dentro de uno <code>/</code> busca en su texto.</p>
         <div class="hint">— sala de lectura —</div>
       </div>
     </section>
@@ -335,6 +352,10 @@ const LIST   = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"
 const TRASH  = '<svg viewBox="0 0 24 24" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
 const COPY   = '<svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
 const CHECK  = '<svg viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg>';
+const MAG    = '<svg class="mag" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
+const UP     = '<svg viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg>';
+const DOWN   = '<svg viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+const CLOSE  = '<svg viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg>';
 
 async function copyText(text){
   try {
@@ -359,6 +380,7 @@ async function copyText(text){
   }
 }
 
+const typingIn = el => !!el && (el.isContentEditable || /^(input|textarea|select)$/i.test(el.tagName || ''));
 
 /* ────────── botón «compartir» de la docbar (bridge en /-/share) ────────── */
 let sharesCache = null;
@@ -543,7 +565,7 @@ function showEmptyReader(){
   readerEl.innerHTML = `
     <div class="empty">
       <div class="glyph">¶</div>
-      <p>Busca con <code>⌘K</code> o abre el catálogo con <code>⌘B</code>. Los <code>.html</code> se abren aquí mismo.</p>
+      <p>Busca con <code>⌘K</code> o abre el catálogo con <code>⌘B</code>. Los <code>.html</code> se abren aquí mismo, y dentro de uno <code>/</code> busca en su texto.</p>
       <div class="hint">— sala de lectura —</div>
     </div>`;
   document.body.classList.remove('reading');
@@ -695,6 +717,7 @@ function reveal(node){
 
 function openDoc(node){
   activeAbs = node.abs;
+  find = null;
   // Cache-bust por mtime: la URL cambia solo cuando cambia el fichero, así el
   // iframe nunca reusa una copia vieja cacheada (un ?v fijo no bastaría).
   const src = encodeURI(node.abs) + '?v=' + encodeURIComponent(node.mtime || '');
@@ -719,6 +742,14 @@ function openDoc(node){
         <a href="${src}" target="_blank" rel="noopener">${ext}pestaña nueva</a>
         <button class="back" id="back">${back}catálogo</button>
       </div>
+      ${isHtml(node) ? `<div class="findbar" id="findbar" hidden>
+        ${MAG}
+        <input id="find-input" type="text" placeholder="buscar en este artículo…" autocomplete="off" spellcheck="false" data-bwignore="true" aria-label="Buscar en este artículo">
+        <span class="find-count" id="find-count"></span>
+        <button id="find-prev" title="Anterior (⇧↵)" aria-label="Coincidencia anterior">${UP}</button>
+        <button id="find-next" title="Siguiente (↵)" aria-label="Coincidencia siguiente">${DOWN}</button>
+        <button id="find-close" title="Cerrar (esc)" aria-label="Cerrar la búsqueda">${CLOSE}</button>
+      </div>` : ''}
       <div class="docbody no-toc" id="docbody">
         <aside class="toc" id="toc" aria-label="Índice del documento"></aside>
         <iframe class="frame" src="${src}" title="${node.name}"></iframe>
@@ -727,7 +758,12 @@ function openDoc(node){
   document.body.classList.add('reading');
   if (isHtml(node)){
     const fr = readerEl.querySelector('.frame');
-    fr.addEventListener('load', () => { readingTime(fr); buildToc(fr); });
+    fr.addEventListener('load', () => {
+      find = null;
+      readingTime(fr); buildToc(fr); wireFrameKeys(fr);
+      if (findOpen()) openFind();
+    });
+    wireFind();
   }
   wireCopySlug(node);
   const t = document.getElementById('toc-btn');
@@ -755,6 +791,166 @@ function wireCopySlug(node){
       btn.innerHTML = COPY;
     }, 1800);
   };
+}
+
+const FIND_HL  = 'scriptorium-find';
+const FIND_MAX = 2000;
+let find = null;
+
+const findEls = () => ({
+  bar:   document.getElementById('findbar'),
+  input: document.getElementById('find-input'),
+  count: document.getElementById('find-count'),
+});
+
+const highlightsOf = win => (win.CSS && win.CSS.highlights) || null;
+
+function ensureFindCss(doc){
+  if (doc.getElementById('scriptorium-find-css')) return;
+  const st = doc.createElement('style');
+  st.id = 'scriptorium-find-css';
+  st.textContent = '::highlight(' + FIND_HL + '){background:#5fa89240;color:inherit}' +
+                   '::highlight(' + FIND_HL + '-on){background:#5FA892;color:#191815}';
+  (doc.head || doc.documentElement).appendChild(st);
+}
+
+function findRanges(doc, needle){
+  const out = [];
+  const q = needle.toLowerCase();
+  const walk = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, {
+    acceptNode(n){
+      const p = n.parentElement;
+      if (!p || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+      if (p.closest('script,style,noscript')) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    },
+  });
+  for (let n; (n = walk.nextNode());){
+    const hay = n.nodeValue.toLowerCase();
+    for (let i = hay.indexOf(q); i !== -1; i = hay.indexOf(q, i + q.length)){
+      const r = doc.createRange();
+      r.setStart(n, i);
+      r.setEnd(n, i + q.length);
+      out.push(r);
+      if (out.length >= FIND_MAX) return out;
+    }
+  }
+  return out;
+}
+
+function paintFind(){
+  if (!find) return;
+  const reg = highlightsOf(find.win);
+  if (!reg) return;
+  reg.delete(FIND_HL);
+  reg.delete(FIND_HL + '-on');
+  if (!find.ranges.length) return;
+  const rest = find.ranges.filter((_, i) => i !== find.idx);
+  if (rest.length) reg.set(FIND_HL, new find.win.Highlight(...rest));
+  if (find.idx >= 0) reg.set(FIND_HL + '-on', new find.win.Highlight(find.ranges[find.idx]));
+}
+
+function findCount(){
+  const {count} = findEls();
+  if (!count || !find) return;
+  const n = find.ranges.length;
+  count.classList.toggle('none', !!find.query && !n);
+  if (!find.query) count.textContent = '';
+  else if (!n) count.textContent = 'sin coincidencias';
+  else count.textContent = `${find.idx + 1}/${n}${n >= FIND_MAX ? '+' : ''}`;
+}
+
+function showMatch(i){
+  if (!find || !find.ranges.length) return;
+  const n = find.ranges.length;
+  find.idx = ((i % n) + n) % n;
+  const r = find.ranges[find.idx];
+  const host = r.startContainer.parentElement;
+  for (let d = host && host.closest('details'); d; d = d.parentElement && d.parentElement.closest('details')) d.open = true;
+  const top = r.getBoundingClientRect().top + find.win.scrollY - Math.max(80, find.win.innerHeight / 3);
+  find.win.scrollTo({top: Math.max(0, top), behavior:'smooth'});
+  paintFind();
+  if (!highlightsOf(find.win)){
+    const sel = find.win.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(r);
+  }
+  findCount();
+}
+
+function runFind(q){
+  if (!find) return;
+  find.query = q;
+  find.ranges = q ? findRanges(find.doc, q) : [];
+  find.idx = -1;
+  if (find.ranges.length) showMatch(0);
+  else { paintFind(); findCount(); }
+}
+
+function clearFind(){
+  if (!find) return;
+  const reg = highlightsOf(find.win);
+  if (reg){ reg.delete(FIND_HL); reg.delete(FIND_HL + '-on'); }
+  try { find.win.getSelection().removeAllRanges(); } catch (e) {}
+  find.ranges = []; find.idx = -1; find.query = '';
+  findCount();
+}
+
+const findOpen = () => { const {bar} = findEls(); return !!bar && !bar.hidden; };
+
+function openFind(){
+  const frame = readerEl.querySelector('.frame');
+  const {bar, input} = findEls();
+  if (!frame || !bar) return;
+  let doc, win;
+  try { doc = frame.contentDocument; win = frame.contentWindow; } catch (e) { return; }
+  if (!doc || !doc.body) return;
+  ensureFindCss(doc);
+  if (!find || find.doc !== doc) find = {doc, win, ranges:[], idx:-1, query:''};
+  bar.hidden = false;
+  input.focus();
+  input.select();
+  const q = input.value.trim();
+  if (q && q !== find.query) runFind(q);
+}
+
+function closeFind(){
+  const {bar, input} = findEls();
+  clearFind();
+  if (bar) bar.hidden = true;
+  if (input) input.value = '';
+  const frame = readerEl.querySelector('.frame');
+  if (frame) try { frame.contentWindow.focus(); } catch (e) {}
+}
+
+function wireFind(){
+  const {bar, input} = findEls();
+  if (!bar) return;
+  input.oninput = () => runFind(input.value.trim());
+  input.onkeydown = e => {
+    if (e.key === 'Enter'){ e.preventDefault(); showMatch(find ? find.idx + (e.shiftKey ? -1 : 1) : 0); }
+    else if (e.key === 'ArrowDown'){ e.preventDefault(); showMatch(find ? find.idx + 1 : 0); }
+    else if (e.key === 'ArrowUp'){ e.preventDefault(); showMatch(find ? find.idx - 1 : 0); }
+    else if (e.key === 'Escape'){ e.preventDefault(); closeFind(); }
+  };
+  document.getElementById('find-prev').onclick = () => showMatch(find ? find.idx - 1 : 0);
+  document.getElementById('find-next').onclick = () => showMatch(find ? find.idx + 1 : 0);
+  document.getElementById('find-close').onclick = closeFind;
+}
+
+function wireFrameKeys(frame){
+  let doc;
+  try { doc = frame.contentDocument; } catch (e) { return; }
+  if (!doc) return;
+  doc.addEventListener('keydown', e => {
+    if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey && !typingIn(e.target)){
+      e.preventDefault();
+      openFind();
+    } else if (e.key === 'Escape' && findOpen()){
+      e.preventDefault();
+      closeFind();
+    }
+  });
 }
 
 // Tiempo estimado de lectura, estilo Medium, inyectado dentro del artículo justo
@@ -1000,6 +1196,14 @@ palInput.addEventListener('keydown', e => {
 });
 backdrop.addEventListener('click', e => { if (e.target === backdrop) closePalette(); });
 document.addEventListener('keydown', e => {
+  if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey &&
+      !typingIn(e.target) && !backdrop.classList.contains('open') &&
+      readerEl.querySelector('.frame')){
+    e.preventDefault();
+    openFind();
+    return;
+  }
+  if (e.key === 'Escape' && findOpen()){ e.preventDefault(); closeFind(); return; }
   if (!(e.metaKey || e.ctrlKey) || e.altKey) return;
   const key = e.key.toLowerCase();
   if (key === 'k'){

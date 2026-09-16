@@ -343,11 +343,17 @@ if [[ "$PLATFORM" == "macos" ]]; then
   check "plantilla browse ordena el catálogo por fecha" \
     grep -q 'node.children.sort((a,b) => (b.isDir - a.isDir) || (ts(b) - ts(a))' "$DOTFILES/macos/scriptorium-browse.html"
   check "plantilla browse excluye los buscadores de Bitwarden" \
-    bash -c "[ \"\$(grep -c 'data-bwignore=\"true\"' '$DOTFILES/macos/scriptorium-browse.html')\" = 2 ]"
+    bash -c "[ \"\$(grep -c 'data-bwignore=\"true\"' '$DOTFILES/macos/scriptorium-browse.html')\" = 3 ]"
   check "la docbar copia el slug del artículo" \
     grep -q 'function wireCopySlug' "$DOTFILES/macos/scriptorium-browse.html"
   check "copiar cae a execCommand fuera de contexto seguro" \
     grep -q "document.execCommand('copy')" "$DOTFILES/macos/scriptorium-browse.html"
+  check "la tecla / busca dentro del artículo" \
+    grep -q 'function openFind' "$DOTFILES/macos/scriptorium-browse.html"
+  check "la búsqueda resalta con la Custom Highlight API" \
+    grep -q '::highlight(' "$DOTFILES/macos/scriptorium-browse.html"
+  check "la tecla / funciona con el foco dentro del iframe" \
+    grep -q 'function wireFrameKeys' "$DOTFILES/macos/scriptorium-browse.html"
   check "scriptorium-serve.sh ejecutable" test -x "$DOTFILES/macos/scriptorium-serve.sh"
   check "scriptorium-root-setup.sh ejecutable" test -x "$DOTFILES/macos/scriptorium-root-setup.sh"
   check "LaunchAgent scriptorium cargado" bash -c 'launchctl list | grep -q com.fran.scriptorium'
