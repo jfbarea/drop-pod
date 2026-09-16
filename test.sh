@@ -387,14 +387,16 @@ if [[ "$PLATFORM" == "macos" ]]; then
     grep -q '^window-save-state = always' "$HOME/.config/ghostty/config.ghostty"
 fi
 
-# ── 7f. macOS: triple Shift → foco a Ghostty (Hammerspoon) ───────────────────
+# ── 7f. macOS: atajos de Hammerspoon (foco a Ghostty, Mission Control) ───────
 if [[ "$PLATFORM" == "macos" ]]; then
-  section "macOS — Hammerspoon (foco Ghostty por teclado)"
+  section "macOS — Hammerspoon (foco Ghostty, Mission Control)"
   check "Hammerspoon instalado" test -d "/Applications/Hammerspoon.app"
   check_symlink "~/.hammerspoon/init.lua" \
     "$HOME/.hammerspoon/init.lua" "$DOTFILES/hammerspoon/.hammerspoon/init.lua"
   check "init.lua invoca claude-focus-last.sh" \
     grep -q 'claude-focus-last.sh' "$HOME/.hammerspoon/init.lua"
+  check "init.lua abre Mission Control con los botones laterales" \
+    grep -q 'toggleMissionControl' "$HOME/.hammerspoon/init.lua"
   check "Hammerspoon en ejecución" pgrep -xq Hammerspoon
 fi
 
