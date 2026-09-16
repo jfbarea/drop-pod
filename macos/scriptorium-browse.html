@@ -562,6 +562,7 @@ function entryEl(node, depth, isAcc){
 
 function showEmptyReader(){
   activeAbs = null;
+  rememberOpen(null);
   readerEl.innerHTML = `
     <div class="empty">
       <div class="glyph">¶</div>
@@ -705,18 +706,44 @@ async function toggle(node){
   render();
 }
 
-function reveal(node){
-  setCatalog(false);
-  query = ''; qEl.value = '';
+function expandTo(node){
   let cur = ROOT.abs;
   node.abs.slice(ROOT.abs.length).split('/').filter(Boolean).forEach(seg => {
     cur += seg + '/'; expanded.add(cur);
   });
+}
+
+function reveal(node){
+  setCatalog(false);
+  query = ''; qEl.value = '';
+  expandTo(node);
   render();
+}
+
+/* ────────── el artículo abierto vive en el hash: sobrevive al refresco ────────── */
+const hashOf = node => node.abs.slice(ROOT.abs.length).split('/').filter(Boolean).map(encodeURIComponent).join('/');
+
+function rememberOpen(node){
+  history.replaceState(null, '', node ? '#' + hashOf(node) : location.pathname + location.search);
+}
+
+async function nodeFromHash(){
+  const segs = location.hash.replace(/^#/, '').split('/').filter(Boolean);
+  if (!segs.length) return null;
+  let node = ROOT;
+  for (const raw of segs){
+    let seg;
+    try { seg = decodeURIComponent(raw); } catch (e) { return null; }
+    const hit = (await loadChildren(node)).find(c => c.name.replace(/\/$/, '') === seg);
+    if (!hit) return null;
+    node = hit;
+  }
+  return isHtml(node) ? node : null;
 }
 
 function openDoc(node){
   activeAbs = node.abs;
+  rememberOpen(isHtml(node) ? node : null);
   find = null;
   // Cache-bust por mtime: la URL cambia solo cuando cambia el fichero, así el
   // iframe nunca reusa una copia vieja cacheada (un ?v fijo no bastaría).
@@ -1217,7 +1244,12 @@ document.addEventListener('keydown', e => {
 
 /* arranque */
 renderCrumbs();
-(async () => { await loadChildren(ROOT); render(); })();
+(async () => {
+  await loadChildren(ROOT);
+  render();
+  const open = await nodeFromHash();
+  if (open){ expandTo(open); openDoc(open); }
+})();
 </script>
 </body>
 </html>

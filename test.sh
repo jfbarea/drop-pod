@@ -354,6 +354,10 @@ if [[ "$PLATFORM" == "macos" ]]; then
     grep -q '::highlight(' "$DOTFILES/macos/scriptorium-browse.html"
   check "la tecla / funciona con el foco dentro del iframe" \
     grep -q 'function wireFrameKeys' "$DOTFILES/macos/scriptorium-browse.html"
+  check "el artículo abierto se guarda en el hash" \
+    grep -q 'function rememberOpen' "$DOTFILES/macos/scriptorium-browse.html"
+  check "al recargar se reabre el artículo del hash" \
+    grep -q 'function nodeFromHash' "$DOTFILES/macos/scriptorium-browse.html"
   check "scriptorium-serve.sh ejecutable" test -x "$DOTFILES/macos/scriptorium-serve.sh"
   check "scriptorium-root-setup.sh ejecutable" test -x "$DOTFILES/macos/scriptorium-root-setup.sh"
   check "LaunchAgent scriptorium cargado" bash -c 'launchctl list | grep -q com.fran.scriptorium'
