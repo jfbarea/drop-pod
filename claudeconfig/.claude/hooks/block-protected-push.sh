@@ -2,6 +2,7 @@
 set -uo pipefail
 
 PROTECTED_BRANCHES="${CLAUDE_PROTECTED_BRANCHES:-main master dev develop development alpha}"
+UNPROTECTED_REPOS="${CLAUDE_UNPROTECTED_REPOS:-jfbarea/drop-pod}"
 
 payload="$(cat)"
 command_line="$(printf '%s' "$payload" | jq -r '.tool_input.command // ""')"
@@ -44,6 +45,28 @@ current_branch() {
   git --no-optional-locks -C "$1" rev-parse --abbrev-ref HEAD 2>/dev/null
 }
 
+repo_slug() {
+  local url repo rest
+  url="$(git --no-optional-locks -C "$1" remote get-url origin 2>/dev/null)"
+  [[ -z "$url" ]] && return 1
+  url="${url%.git}"
+  url="${url%/}"
+  url="${url//://}"
+  repo="${url##*/}"
+  rest="${url%/*}"
+  printf '%s/%s' "${rest##*/}" "$repo"
+}
+
+is_unprotected_repo() {
+  local slug entry
+  slug="$(repo_slug "$1")" || return 1
+  slug="$(printf '%s' "$slug" | tr '[:upper:]' '[:lower:]')"
+  for entry in $UNPROTECTED_REPOS; do
+    [[ "$slug" == "$(printf '%s' "$entry" | tr '[:upper:]' '[:lower:]')" ]] && return 0
+  done
+  return 1
+}
+
 check_target_branch() {
   local target="$1" repo_dir="$2"
   case "$target" in
@@ -78,6 +101,8 @@ check_segment() {
   done
   (( index >= total )) && deny_unknown "no encuentro los argumentos de push en: $segment"
   [[ -d "$repo_dir" ]] || repo_dir="$hook_cwd"
+
+  is_unprotected_repo "$repo_dir" && return 0
 
   local -a positionals=()
   local pushes_tags=0 token

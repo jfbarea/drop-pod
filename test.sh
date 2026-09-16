@@ -532,10 +532,11 @@ check "hook PreToolUse llama a block-protected-push" \
 
 push_hook="$HOME/.claude/hooks/block-protected-push.sh"
 push_hook_verdict() {
-  local branch="$1" cmd="$2" expected="$3" repo verdict
+  local branch="$1" cmd="$2" expected="$3" remote="${4:-}" repo verdict
   repo="$(mktemp -d)"
   git -C "$repo" init -q -b "$branch" >/dev/null 2>&1
   git -C "$repo" -c commit.gpgsign=false commit -q --allow-empty -m init >/dev/null 2>&1
+  [[ -n "$remote" ]] && git -C "$repo" remote add origin "$remote"
   local output
   output="$(printf '{"cwd":"%s","tool_input":{"command":%s}}' "$repo" "$(jq -Rn --arg c "$cmd" '$c')" \
     | "$push_hook")"
@@ -560,6 +561,17 @@ check "hook permite push explícito a rama de trabajo" push_hook_verdict main 'g
 check "hook permite --force-with-lease en rama de trabajo" \
   push_hook_verdict feature/x 'git push --force-with-lease origin feature/x' allow
 check "hook ignora comandos que no son push"   push_hook_verdict main 'git status' allow
+
+dp_ssh="git@github.com:jfbarea/drop-pod.git"
+dp_https="https://github.com/jfbarea/drop-pod.git"
+check "hook exime a drop-pod por ssh"               push_hook_verdict main 'git push' allow "$dp_ssh"
+check "hook exime a drop-pod por https"             push_hook_verdict main 'git push' allow "$dp_https"
+check "la excepción ignora mayúsculas"               push_hook_verdict main 'git push' allow "git@github.com:JFBAREA/Drop-Pod.git"
+check "la excepción no alcanza a otros repos"        push_hook_verdict main 'git push' deny "git@github.com:revel/revel-app.git"
+check "la excepción no alcanza a nombres parecidos"  push_hook_verdict main 'git push' deny "git@github.com:jfbarea/drop-pod-otro.git"
+check "la excepción no tapa una rama indeterminable" push_hook_verdict feature/x 'git push origin "$RAMA"' deny "$dp_ssh"
+check "sin remote sigue protegido"                  push_hook_verdict main 'git push' deny
+
 check "statusLine configurado"         jq -e '.statusLine.type == "command"' "$claude_settings"
 check "statusLine apunta a statusline.sh" \
   bash -c "jq -r '.statusLine.command' '$claude_settings' | grep -q 'statusline.sh'"
