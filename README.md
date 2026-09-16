@@ -266,6 +266,27 @@ La cadena para trabajo nuevo es **`/research` (opcional) → `/specs` → `/feat
 
 Internamente los comandos delegan en cinco subagentes (`architect`, `builder`, `reviewer`, `debugger`, `auditor`) que se coordinan automáticamente.
 
+### Skills de diffity
+
+Vienen del proyecto [nilbuild/diffity](https://github.com/nilbuild/diffity) y están versionadas
+en `claudeconfig/.claude/skills/` en vez de instalarse con `npx skills add`, para que el
+símil de `install.sh` sea reproducible y el contenido quede bajo control de versiones.
+Todas necesitan el binario `diffity`, que instala `install.sh`.
+
+| Comando | Cuándo usarlo |
+|---|---|
+| `/diffity-diff` | Abre el diff (working tree, ref, rango o URL de PR) en el visor del navegador |
+| `/diffity-review` | El agente revisa el diff y deja comentarios inline en el visor |
+| `/diffity-resolve` | Lee los comentarios abiertos del visor y aplica los cambios pedidos |
+| `/diffity-tree` | Explorador de ficheros del repo, con comentarios |
+| `/diffity-resolve-tree` | Resuelve los comentarios dejados desde el explorador |
+| `/diffity-tour` | Recorrido guiado por el código para explicar una feature o responder una pregunta |
+| `/diffity-learn` | Ruta de aprendizaje por proyectos sobre un tema técnico |
+
+Para actualizarlas hay que copiar de nuevo `skills/` del repo de diffity a
+`claudeconfig/.claude/skills/` y volver a stowar: el aviso de «skills have changed» que
+imprime `diffity update` es la señal de que toca.
+
 ### Instalación
 
 Los archivos se instalan junto al resto de dotfiles con:

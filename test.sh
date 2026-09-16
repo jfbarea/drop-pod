@@ -159,6 +159,11 @@ check "/code-review built-in sin sombrear" \
 check_symlink "~/.claude/skills/worktree-cleanup/SKILL.md" \
   "$HOME/.claude/skills/worktree-cleanup/SKILL.md" \
   "$DOTFILES/claudeconfig/.claude/skills/worktree-cleanup/SKILL.md"
+for s in diff review resolve resolve-tree tree tour learn; do
+  check_symlink "~/.claude/skills/diffity-$s/SKILL.md" \
+    "$HOME/.claude/skills/diffity-$s/SKILL.md" \
+    "$DOTFILES/claudeconfig/.claude/skills/diffity-$s/SKILL.md"
+done
 
 # ── 6b. Cadena de comandos de feature ────────────────────────────────────────
 section "Cadena de comandos de feature"
