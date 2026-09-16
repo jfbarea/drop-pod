@@ -344,6 +344,10 @@ if [[ "$PLATFORM" == "macos" ]]; then
     grep -q 'node.children.sort((a,b) => (b.isDir - a.isDir) || (ts(b) - ts(a))' "$DOTFILES/macos/scriptorium-browse.html"
   check "plantilla browse excluye los buscadores de Bitwarden" \
     bash -c "[ \"\$(grep -c 'data-bwignore=\"true\"' '$DOTFILES/macos/scriptorium-browse.html')\" = 2 ]"
+  check "la docbar copia el slug del artículo" \
+    grep -q 'function wireCopySlug' "$DOTFILES/macos/scriptorium-browse.html"
+  check "copiar cae a execCommand fuera de contexto seguro" \
+    grep -q "document.execCommand('copy')" "$DOTFILES/macos/scriptorium-browse.html"
   check "scriptorium-serve.sh ejecutable" test -x "$DOTFILES/macos/scriptorium-serve.sh"
   check "scriptorium-root-setup.sh ejecutable" test -x "$DOTFILES/macos/scriptorium-root-setup.sh"
   check "LaunchAgent scriptorium cargado" bash -c 'launchctl list | grep -q com.fran.scriptorium'

@@ -156,7 +156,18 @@ body.nav-collapsed .catalog{display:none}
 .docview{display:flex;flex-direction:column;height:100%;animation:rise .4s cubic-bezier(.2,.7,.3,1)}
 @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .docbar{display:flex;align-items:center;gap:12px;padding:12px 22px;border-bottom:1px solid var(--line);background:var(--surface)}
-.docbar .name{font-family:"Fraunces",serif;font-weight:500;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.docbar .doctitle{flex:1;min-width:0;display:flex;align-items:center;gap:8px}
+.docbar .name{font-family:"Fraunces",serif;font-weight:500;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+.docbar .copy{
+  flex:none;display:inline-flex;align-items:center;gap:5px;
+  border:none;background:transparent;color:var(--faint);cursor:pointer;
+  padding:3px 6px;border-radius:7px;
+  font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.02em;
+  transition:color .14s,background .14s;
+}
+.docbar .copy:hover{color:var(--accent);background:var(--surface-2)}
+.docbar .copy.done{color:var(--accent)}
+.docbar .copy.error{color:#e5484d}
 .docbar a,.docbar .back{
   font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted);text-decoration:none;
   background:none;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
@@ -322,6 +333,32 @@ const CHEV   = '<svg class="chev" width="11" height="11" viewBox="0 0 24 24" fil
 const SHARE  = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5 15.4 17.5"/><path d="M15.4 6.5 8.6 10.5"/></svg>';
 const LIST   = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12"/><path d="M9 12h12"/><path d="M9 18h12"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/></svg>';
 const TRASH  = '<svg viewBox="0 0 24 24" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
+const COPY   = '<svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+const CHECK  = '<svg viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg>';
+
+async function copyText(text){
+  try {
+    if (navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (e) {}
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:0;left:-9999px;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    ta.setSelectionRange(0, text.length);
+    const ok = document.execCommand('copy');
+    ta.remove();
+    return ok;
+  } catch (e) {
+    return false;
+  }
+}
+
 
 /* ────────── botón «compartir» de la docbar (bridge en /-/share) ────────── */
 let sharesCache = null;
@@ -404,8 +441,7 @@ async function doShare(node){
     link.href = data.url;
     link.hidden = false;
     btn.title = SHARE_TITLE_UPDATE;
-    try { await navigator.clipboard.writeText(data.url); } catch (e) {}
-    label.textContent = '✓ copiado';
+    label.textContent = (await copyText(data.url)) ? '✓ copiado' : '✓ publicado';
     setTimeout(() => {
       const w = shareWrapFor(node);
       if (w) w.querySelector('.share-label').textContent = 'actualizar';
@@ -669,7 +705,10 @@ function openDoc(node){
   readerEl.innerHTML = `
     <div class="docview">
       <div class="docbar">
-        <span class="name">${node.name}</span>
+        <span class="doctitle">
+          <span class="name">${node.name}</span>
+          <button class="copy" id="copy-slug" title="Copiar el slug" aria-label="Copiar el slug ${node.name}">${COPY}</button>
+        </span>
         ${isHtml(node) ? `<button class="back" id="toc-btn" title="${tocOpen ? 'Ocultar índice' : 'Mostrar índice'}" hidden>${LIST}índice</button>` : ''}
         ${isHtml(node) ? `<button class="back" id="pdf" title="Imprimir → Guardar como PDF">${pdf}PDF</button>` : ''}
         ${isShareable(node) ? `<span class="share" id="share" data-abs="${node.abs}">
@@ -690,6 +729,7 @@ function openDoc(node){
     const fr = readerEl.querySelector('.frame');
     fr.addEventListener('load', () => { readingTime(fr); buildToc(fr); });
   }
+  wireCopySlug(node);
   const t = document.getElementById('toc-btn');
   if (t) t.onclick = () => setToc(!tocOpen);
   const b = document.getElementById('back');
@@ -698,6 +738,23 @@ function openDoc(node){
   if (p) p.onclick = () => exportPdf(readerEl.querySelector('.frame'));
   if (isShareable(node)) wireShare(node);
   render();
+}
+
+function wireCopySlug(node){
+  const btn = document.getElementById('copy-slug');
+  if (!btn) return;
+  let timer = null;
+  btn.onclick = async () => {
+    clearTimeout(timer);
+    const ok = await copyText(node.name);
+    btn.classList.toggle('done', ok);
+    btn.classList.toggle('error', !ok);
+    btn.innerHTML = ok ? `${CHECK}<span>copiado</span>` : `${COPY}<span>no se pudo copiar</span>`;
+    timer = setTimeout(() => {
+      btn.classList.remove('done', 'error');
+      btn.innerHTML = COPY;
+    }, 1800);
+  };
 }
 
 // Tiempo estimado de lectura, estilo Medium, inyectado dentro del artículo justo
