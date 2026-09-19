@@ -1,5 +1,5 @@
 ---
-description: Especificación de una feature, construida a base de preguntas de una en una. Fuente de verdad en plan/specs/<slug>.md; se lee en el scriptorium. Es la puerta obligatoria antes de /feature.
+description: Especificación de una feature, construida a base de preguntas de una en una. Fuente de verdad en plan/specs/<slug>.md; se lee en el scriptorium. Es la puerta obligatoria antes de /feature-parallel.
 argument-hint: "[slug o descripción de la feature — opcional; sin argumento retoma la spec activa]"
 ---
 
@@ -7,11 +7,11 @@ Especificación detallada de una feature, escrita entre los dos. Yo respondo, t�
 
 El argumento (opcional): $ARGUMENTS
 
-Esta es la puerta antes de `/feature`: sin una spec en `APPROVED` no se implementa nada. Aquí no se escribe código de aplicación, no se abren ramas y no se crean hitos.
+Esta es la puerta antes de `/feature-parallel`: sin una spec en `APPROVED` no se implementa nada. Aquí no se escribe código de aplicación, no se abren ramas y no se crean tareas.
 
 ## Artefactos
 
-- **Fuente de verdad**: `plan/specs/<slug>.md` (kebab-case). Versionado, diffable, y lo que después leen `/feature`, `builder` y `reviewer`.
+- **Fuente de verdad**: `plan/specs/<slug>.md` (kebab-case). Versionado, diffable, y lo que después leen `/feature-parallel`, `worker` e `integrator`.
 - **Vista para leer**: `~/src/html/<repo-name>/spec-<slug>.html`, con las reglas de HTML del `CLAUDE.md` global (estilo scriptorium, dark fijo, tipografía, SVG para cualquier diagrama, bloque `@media print`, rotación a `archive/` antes de escribir, legible en iframe estrecho). Es un render del `.md`, nunca una segunda fuente: si divergen, manda el `.md`.
 - `plan/specs/_active` contiene el slug de la spec en curso.
 
@@ -78,16 +78,17 @@ Si una sección no aplica de verdad, la dejas con una línea diciendo por qué n
 
 Mi feedback en `REVIEW` devuelve la spec a `DRAFT` y seguimos preguntando.
 
-## Hand-off a /feature
+## Hand-off a /feature-parallel
 
 Cuando yo diga que pasamos a implementar:
 
 1. Verifica que el estado es `APPROVED`. Si no lo está, niégate y dime qué falta.
 2. Regenera el HTML si el `.md` cambió después del último render.
-3. Continúa con el flujo de `/feature` pasando `plan/specs/<slug>.md` como input principal: los hitos se derivan de los criterios de aceptación.
+3. Continúa con el flujo de `/feature-parallel` (`feature-parallel.md`, junto a este fichero) pasando `plan/specs/<slug>.md` como input principal: las tareas y sus dependencias se derivan de los criterios de aceptación, y cada criterio tiene que caer en al menos una tarea.
+4. Si al montar el grafo el trabajo sale en cadena —cada tarea dependiendo de la anterior—, `/feature-parallel` te lo dirá y os pasáis a `/feature`. Paralelizar una cadena no acelera nada y añade piezas que se rompen.
 
 ## Límites
 
-- No implementes. Si te pido código durante la spec, frena: "eso es `/feature`, ¿cerramos la spec?". Fragmentos de contrato (una firma, un esquema de datos, un ejemplo de payload) sí valen cuando son lo especificado.
+- No implementes. Si te pido código durante la spec, frena: "eso es `/feature-parallel`, ¿cerramos la spec?". Fragmentos de contrato (una firma, un esquema de datos, un ejemplo de payload) sí valen cuando son lo especificado.
 - No commitees automáticamente: es un documento de trabajo. Solo al cambiar de estado y si te lo pido: `specs(<slug>): review` / `specs(<slug>): approved`.
 - No toques otras specs ni otras features.

@@ -5,7 +5,7 @@ Investigación pre-feature. Iterativa y dialógica. Output: HTML rico para human
 - Evaluar opciones, trade-offs, riesgos antes de comprometer un PLAN.md.
 - NO uses /research para tareas pequeñas (/quick) ni para features ya decididas (ahí vas directo a /specs).
 
-La cadena es: /research (cuando el problema está abierto) → /specs (especificación detallada) → /feature (implementación). /research decide **qué opción** se toma; /specs decide **qué se construye exactamente**.
+La cadena es: /research (cuando el problema está abierto) → /specs (especificación detallada) → /feature-parallel (implementación en olas paralelas). /research decide **qué opción** se toma; /specs decide **qué se construye exactamente**.
 
 ## Flujo
 
@@ -41,7 +41,7 @@ Cuando el usuario diga "vamos a specs" / "vamos a feature" / "hagamos feature":
 2. Genera/actualiza `plan/research/<slug>.md` (~30-50 líneas: problema, opción elegida, sketch, riesgos clave). Es el resumen destilado, barato en tokens.
 3. Cambia el badge del HTML a `READY_FOR_SPECS` y añade entrada a bitácora.
 4. Commitea: `research(<slug>): handed off to specs`.
-5. Continúa con el flujo de /specs (`specs.md`, junto a este fichero) pasando `plan/research/<slug>.md` como material de partida. El research cierra qué opción se toma; el interrogatorio de /specs arranca por lo que quedó abierto. No salgas de aquí directo a /feature.
+5. Continúa con el flujo de /specs (`specs.md`, junto a este fichero) pasando `plan/research/<slug>.md` como material de partida. El research cierra qué opción se toma; el interrogatorio de /specs arranca por lo que quedó abierto. No salgas de aquí directo a implementar.
 
 ## Commits
 

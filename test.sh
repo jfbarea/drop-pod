@@ -190,6 +190,14 @@ check "/specs no se aprueba a sí misma" \
   grep -q 'nunca te apruebes tu propia spec' "$specs_cmd"
 check "/specs renderiza al scriptorium" \
   grep -q 'src/html/<repo-name>/spec-<slug>.html' "$specs_cmd"
+check "/specs hace hand-off a /feature-parallel" \
+  grep -q 'Hand-off a /feature-parallel' "$specs_cmd"
+check "/specs deriva tareas de los criterios de aceptación" \
+  grep -q 'se derivan de los criterios de aceptación' "$specs_cmd"
+check "/specs contempla la vuelta a /feature si el grafo es una cadena" \
+  grep -q 'os pasáis a `/feature`' "$specs_cmd"
+check "/research encadena hasta /feature-parallel" \
+  grep -q '→ /feature-parallel' "$research_cmd"
 check "/feature exige spec APPROVED" \
   grep -q 'status: APPROVED' "$feature_cmd"
 check "/feature no inventa el alcance" \
