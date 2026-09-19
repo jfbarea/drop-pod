@@ -146,9 +146,14 @@ check_symlink "~/.claude/agents/builder.md"    "$HOME/.claude/agents/builder.md"
 check_symlink "~/.claude/agents/reviewer.md"   "$HOME/.claude/agents/reviewer.md"    "$DOTFILES/claudeconfig/.claude/agents/reviewer.md"
 check_symlink "~/.claude/agents/debugger.md"   "$HOME/.claude/agents/debugger.md"    "$DOTFILES/claudeconfig/.claude/agents/debugger.md"
 check_symlink "~/.claude/agents/auditor.md"    "$HOME/.claude/agents/auditor.md"     "$DOTFILES/claudeconfig/.claude/agents/auditor.md"
+check_symlink "~/.claude/agents/worker.md"     "$HOME/.claude/agents/worker.md"      "$DOTFILES/claudeconfig/.claude/agents/worker.md"
+check_symlink "~/.claude/agents/integrator.md" "$HOME/.claude/agents/integrator.md"  "$DOTFILES/claudeconfig/.claude/agents/integrator.md"
 check_symlink "~/.claude/commands/scaffold.md"     "$HOME/.claude/commands/scaffold.md"     "$DOTFILES/claudeconfig/.claude/commands/scaffold.md"
 check_symlink "~/.claude/commands/specs.md"        "$HOME/.claude/commands/specs.md"        "$DOTFILES/claudeconfig/.claude/commands/specs.md"
 check_symlink "~/.claude/commands/feature.md"      "$HOME/.claude/commands/feature.md"      "$DOTFILES/claudeconfig/.claude/commands/feature.md"
+check_symlink "~/.claude/commands/feature-parallel.md" \
+  "$HOME/.claude/commands/feature-parallel.md" \
+  "$DOTFILES/claudeconfig/.claude/commands/feature-parallel.md"
 check_symlink "~/.claude/commands/quick.md"        "$HOME/.claude/commands/quick.md"        "$DOTFILES/claudeconfig/.claude/commands/quick.md"
 check_symlink "~/.claude/commands/milestone-run.md" "$HOME/.claude/commands/milestone-run.md" "$DOTFILES/claudeconfig/.claude/commands/milestone-run.md"
 check_symlink "~/.claude/commands/debug.md"        "$HOME/.claude/commands/debug.md"        "$DOTFILES/claudeconfig/.claude/commands/debug.md"
@@ -191,6 +196,36 @@ check "/feature no inventa el alcance" \
   grep -q 'para y dime que hay que pasar por `/specs`' "$feature_cmd"
 check "/feature deriva hitos de los criterios de la spec" \
   grep -q 'derivados de los criterios de aceptación de la spec' "$feature_cmd"
+
+fpar_cmd="$DOTFILES/claudeconfig/.claude/commands/feature-parallel.md"
+worker_agent="$DOTFILES/claudeconfig/.claude/agents/worker.md"
+integrator_agent="$DOTFILES/claudeconfig/.claude/agents/integrator.md"
+check "/feature-parallel exige spec APPROVED" \
+  grep -q 'status: APPROVED' "$fpar_cmd"
+check "/feature-parallel exige árbol limpio antes de la ola" \
+  grep -q 'El árbol tiene que estar limpio' "$fpar_cmd"
+check "/feature-parallel exige partición disjunta" \
+  grep -q 'la partición es disjunta' "$fpar_cmd"
+check "/feature-parallel lanza la ola en un solo mensaje" \
+  grep -q 'en un solo mensaje' "$fpar_cmd"
+check "/feature-parallel es el único que commitea" \
+  grep -q 'el único que commitea' "$fpar_cmd"
+check "/feature-parallel corre el gate sobre el conjunto" \
+  grep -q 'Gate de integración' "$fpar_cmd"
+check "/feature-parallel dice cuándo no paralelizar" \
+  grep -q 'Cuándo NO paralelizar' "$fpar_cmd"
+check "worker no hace git de escritura" \
+  grep -q 'Git de escritura: nada' "$worker_agent"
+check "worker no escribe estado" \
+  grep -q 'El estado lo escribe sólo el orquestador' "$worker_agent"
+check "worker no sale de su partición" \
+  grep -q 'fuera de esa lista' "$worker_agent"
+check "integrator revisa las costuras entre tareas" \
+  grep -q 'Costuras entre tareas' "$integrator_agent"
+check "integrator contrasta los no-objetivos de la spec" \
+  grep -q 'No-objetivos de la spec' "$integrator_agent"
+check "integrator no escribe estado" \
+  grep -q 'NO escribes `_state.json`' "$integrator_agent"
 check "/research hace hand-off a /specs" \
   grep -q 'Hand-off a /specs' "$research_cmd"
 check "/research ya no salta a /feature" \
