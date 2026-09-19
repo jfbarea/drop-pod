@@ -239,6 +239,21 @@ check "/research hace hand-off a /specs" \
 check "/research ya no salta a /feature" \
   bash -c "! grep -q 'READY_FOR_FEATURE' '$research_cmd'"
 
+builder_agent="$DOTFILES/claudeconfig/.claude/agents/builder.md"
+reviewer_agent="$DOTFILES/claudeconfig/.claude/agents/reviewer.md"
+check "builder lee la spec y no sólo el hito" \
+  grep -q 'El campo `spec` de `_state.json`' "$builder_agent"
+check "builder respeta los no-objetivos de la spec" \
+  grep -q 'Respeta los no-objetivos de la spec' "$builder_agent"
+check "builder no decide alcance" \
+  grep -q 'El alcance se decide en `/specs`' "$builder_agent"
+check "reviewer lee la spec y no sólo el hito" \
+  grep -q 'El campo `spec` de `_state.json`' "$reviewer_agent"
+check "reviewer contrasta los no-objetivos de la spec" \
+  grep -q '\*\*No-objetivos\*\*' "$reviewer_agent"
+check "el informe del reviewer tiene sección contra la spec" \
+  grep -q '\*\*Contra la spec\*\*' "$reviewer_agent"
+
 # ── 6c. Walkthroughs y code reviews en el scriptorium ────────────────────────
 section "Walkthroughs y code reviews en el scriptorium"
 global_md="$DOTFILES/claudeconfig/.claude/CLAUDE.md"
