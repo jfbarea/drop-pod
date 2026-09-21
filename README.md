@@ -12,7 +12,7 @@ Configuración portable para arrancar una máquina nueva en minutos.
 | **ssh/** | Alias de host en `~/.ssh/config.d/` (incluidos desde `~/.ssh/config`) |
 | **starship/** | `starship.toml` con los timeouts del prompt subidos |
 | **packages/** | `Brewfile` (macOS) y `apt-packages.txt` (Linux/Raspberry Pi) |
-| **templates/** | Plantilla global `CLAUDE.md` para proyectos |
+| **templates/** | Plantilla global `CLAUDE.md` para proyectos + skill `walkthrough` autocontenida para compartir |
 
 ## Instalación en una máquina nueva
 
