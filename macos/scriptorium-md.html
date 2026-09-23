@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<!--
+  Plantilla del scriptorium para servir ficheros .md renderizados.
+
+  No es un documento: es el envoltorio que Caddy rellena con el markdown pedido.
+  La ruta `@md` de scriptorium.Caddyfile reescribe cualquier *.md a este fichero
+  y deja que `templates` lo evalúe, así que `.OriginalReq.URL.Path` es el .md
+  original y `readFile` lo resuelve contra ~/src/html (subdirectiva `root` de
+  `templates`). Vive en ~/.config/caddy junto a scriptorium-browse.html, no en
+  el árbol de documentos: es configuración.
+
+  Instalado por install.sh (setup_scriptorium / setup_scriptorium_linux) como
+  symlink en ~/.config/caddy/scriptorium-md.html.
+-->
+{{- $doc := splitFrontMatter (readFile .OriginalReq.URL.Path) -}}
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{placeholder "http.request.orig_uri.path.file"}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --paper:#191815;
+  --surface:#211F1B;
+  --surface-2:#262420;
+  --ink:#ECEAE2;
+  --muted:#928D82;
+  --faint:#5C584F;
+  --line:#332F29;
+  --accent:#5FA892;
+  --accent-soft:#5fa8921f;
+  --shadow:0 1px 2px rgba(0,0,0,.2),0 12px 28px rgba(0,0,0,.28);
+  --radius:14px;
+  --code-str:#C2A56B;
+  --code-num:#C98A6B;
+  --code-fn:#7FA8C9;
+  --code-err:#D96B6B;
+  --diff-add:#1e2f26;
+  --diff-del:#2f1e1e;
+}
+*{box-sizing:border-box}
+html{background:var(--paper)}
+body{
+  margin:0;
+  padding:32px 16px 96px;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"Newsreader",Georgia,serif;
+  font-size:17px;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+.doc{max-width:760px;margin:0 auto}
+
+.fm{
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  margin:0 0 28px;padding:0 0 18px;
+  border-bottom:1px solid var(--line);
+  font-family:"JetBrains Mono",ui-monospace,monospace;
+  font-size:11px;line-height:1.4;
+}
+.fm .path{color:var(--faint);word-break:break-all;margin-right:auto}
+.fm .chip{
+  padding:3px 9px;border:1px solid var(--line);border-radius:999px;
+  background:var(--surface);color:var(--muted);white-space:nowrap;
+}
+.fm .chip b{font-weight:400;color:var(--faint)}
+.fm .chip-status{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+
+h1,h2,h3,h4,h5,h6{font-family:"Fraunces",Georgia,serif;font-weight:600;line-height:1.25;color:var(--ink)}
+h1{font-size:2em;margin:0 0 .6em;letter-spacing:-.01em}
+h2{font-size:1.45em;margin:2em 0 .5em;padding-top:.6em;border-top:1px solid var(--line)}
+h3{font-size:1.15em;margin:1.6em 0 .4em}
+h4,h5,h6{font-size:1em;margin:1.4em 0 .3em;color:var(--muted)}
+
+p{margin:0 0 1.1em}
+a{color:var(--accent);text-underline-offset:2px;text-decoration-color:var(--accent-soft)}
+a:hover{text-decoration-color:var(--accent)}
+strong{font-weight:600}
+hr{border:0;border-top:1px solid var(--line);margin:2.4em 0}
+ul,ol{margin:0 0 1.1em;padding-left:1.4em}
+li{margin:.3em 0}
+li::marker{color:var(--faint)}
+li input[type=checkbox]{margin-right:.4em;accent-color:var(--accent)}
+blockquote{
+  margin:1.4em 0;padding:.2em 0 .2em 18px;
+  border-left:2px solid var(--faint);color:var(--muted);font-style:italic;
+}
+blockquote p:last-child{margin-bottom:0}
+img{max-width:100%;height:auto;border-radius:8px}
+svg{max-width:100%;height:auto}
+
+code{
+  font-family:"JetBrains Mono",ui-monospace,monospace;
+  font-size:.82em;
+}
+:not(pre)>code{
+  padding:.15em .4em;border-radius:5px;
+  background:var(--surface-2);border:1px solid var(--line);color:var(--ink);
+}
+pre{
+  margin:1.4em 0;padding:14px 16px;overflow-x:auto;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  font-size:13px;line-height:1.55;
+}
+pre code{font-size:inherit;background:none;border:0;padding:0;color:var(--ink)}
+
+.tblwrap{overflow-x:auto;margin:1.4em 0;border:1px solid var(--line);border-radius:var(--radius)}
+table{border-collapse:collapse;width:100%;font-size:.88em}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;font-weight:600;
+   text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:var(--surface)}
+tr:last-child td{border-bottom:0}
+
+/* Caddy resalta los bloques de código con chroma en modo clases (WithClasses),
+   así que sin estas reglas el código sale monocromo. */
+.chroma .c,.chroma .ch,.chroma .cm,.chroma .c1,.chroma .cs,.chroma .cp,.chroma .cpf{color:var(--faint);font-style:italic}
+.chroma .k,.chroma .kc,.chroma .kd,.chroma .kn,.chroma .kp,.chroma .kr,.chroma .kt{color:var(--accent)}
+.chroma .o,.chroma .ow{color:var(--accent)}
+.chroma .p{color:var(--muted)}
+.chroma .s,.chroma .s1,.chroma .s2,.chroma .sa,.chroma .sb,.chroma .sc,.chroma .sd,
+.chroma .se,.chroma .sh,.chroma .si,.chroma .sx,.chroma .sr,.chroma .ss{color:var(--code-str)}
+.chroma .m,.chroma .mb,.chroma .mf,.chroma .mh,.chroma .mi,.chroma .mo{color:var(--code-num)}
+.chroma .nb,.chroma .nf,.chroma .nx{color:var(--code-fn)}
+.chroma .nt{color:var(--accent)}
+.chroma .na,.chroma .nv,.chroma .vi{color:var(--code-fn)}
+.chroma .nc,.chroma .nn,.chroma .no{color:var(--ink)}
+.chroma .err{color:var(--code-err)}
+.chroma .gd{color:#E89A9A;background:var(--diff-del);display:inline-block;width:100%}
+.chroma .gi{color:#8FD4B4;background:var(--diff-add);display:inline-block;width:100%}
+.chroma .gh,.chroma .gu{color:var(--code-fn);font-weight:600}
+.chroma .gs{font-weight:600}
+.chroma .ge{font-style:italic}
+.chroma .gp{color:var(--faint)}
+
+@media print{
+  /* El fondo va en el root: es lo que hace que el navegador pinte también el
+     margen de página y no queden franjas blancas alrededor del diseño oscuro. */
+  html{background:var(--paper) !important;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+  @page{size:A4;margin:14mm}
+  body{padding:0;font-size:11pt;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .doc{max-width:none}
+  h1{font-size:20pt}
+  h2{font-size:15pt}
+  h3{font-size:13pt}
+  h4,h5,h6{font-size:11pt}
+  h1,h2,h3,h4,h5,h6{break-after:avoid}
+  pre,blockquote,figure,img,svg,table,tr,li,.fm,.tblwrap{break-inside:avoid}
+  pre{font-size:9pt;white-space:pre-wrap;word-break:break-word}
+  .tblwrap{overflow:visible}
+  table{font-size:9pt}
+  a{color:var(--accent)}
+}
+</style>
+</head>
+<body>
+<article class="doc">
+  <div class="fm">
+    <span class="path">{{placeholder "http.request.orig_uri.path.dir"}}<b>{{placeholder "http.request.orig_uri.path.file"}}</b></span>
+    {{- range $k, $v := $doc.Meta}}
+    <span class="chip{{if eq $k "status"}} chip-status{{end}}"><b>{{$k}}</b> {{$v}}</span>
+    {{- end}}
+  </div>
+  {{markdown $doc.Body}}
+</article>
+<script>
+// El catálogo (scriptorium-browse.html) construye el índice y el buscador
+// leyendo el DOM de este iframe, así que todo lo de aquí corre antes de que
+// mire: nada de diferirlo a load.
+document.querySelectorAll('table').forEach(function (t) {
+  var w = document.createElement('div');
+  w.className = 'tblwrap';
+  t.parentNode.insertBefore(w, t);
+  w.appendChild(t);
+});
+// Servido dentro del iframe del panel lector: un enlace externo sin target
+// navegaría el propio panel y dejaría el catálogo sin documento.
+document.querySelectorAll('a[href^="http"]').forEach(function (a) {
+  a.target = '_blank';
+  a.rel = 'noopener';
+});
+</script>
+</body>
+</html>

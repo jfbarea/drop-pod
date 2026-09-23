@@ -31,6 +31,33 @@
 		reverse_proxy 127.0.0.1:8737
 	}
 
+	# Los .md se sirven renderizados en vez de descargarse: scriptorium-md.html
+	# (en ~/.config/caddy) los envuelve con el estilo del visor. Así un plan o
+	# una spec se lee en el panel lector sin generarle a mano un gemelo .html
+	# que se queda viejo en cuanto se edita el markdown.
+	#
+	# La subdirectiva `root` de `templates` es lo que permite tener la plantilla
+	# fuera del árbol de documentos: file_server sirve el shell desde
+	# ~/.config/caddy y `readFile` resuelve el .md contra ~/src/html.
+	#
+	# El matcher exige que el fichero exista (`file`): sin esa condición un .md
+	# inexistente da 500 —readFile falla dentro de la plantilla— en vez de caer
+	# en el 404 normal del file_server de abajo.
+	@md {
+		path *.md
+		file
+	}
+	handle @md {
+		route {
+			root * {$HOME}/.config/caddy
+			rewrite * /scriptorium-md.html
+			templates {
+				root {$HOME}/src/html
+			}
+			file_server
+		}
+	}
+
 	file_server {
 		# Sin resolución de ficheros índice: el catálogo (browse) expande cada
 		# carpeta pidiendo su listado JSON, y un index.html en la carpeta lo

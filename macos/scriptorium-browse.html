@@ -285,7 +285,7 @@ body.nav-collapsed .catalog{display:none}
     <section class="reader" id="reader">
       <div class="empty">
         <div class="glyph">¶</div>
-        <p>Busca con <code>⌘K</code> o abre el catálogo con <code>⌘B</code>. Los <code>.html</code> se abren aquí mismo, y dentro de uno <code>/</code> busca en su texto.</p>
+        <p>Busca con <code>⌘K</code> o abre el catálogo con <code>⌘B</code>. Los <code>.html</code> y <code>.md</code> se abren aquí mismo, y dentro de uno <code>/</code> busca en su texto.</p>
         <div class="hint">— sala de lectura —</div>
       </div>
     </section>
@@ -504,6 +504,9 @@ const fmt = iso => {
   const p = n => String(n).padStart(2, '0');
   return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
 };
+const isDoc = it => !it.isDir && /\.(html?|md)$/i.test(it.name);
+// Solo los .html llevan un <title> propio: el de un .md lo pone la plantilla
+// del servidor (scriptorium-md.html) y es el nombre del fichero, que ya tenemos.
 const isHtml = it => !it.isDir && /\.html?$/i.test(it.name);
 const isShareable = it => !it.isDir && /\.html$/i.test(it.name);
 const label = it => it.isDir ? it.name.replace(/\/$/,'') : (it.title || it.name);
@@ -566,7 +569,7 @@ function showEmptyReader(){
   readerEl.innerHTML = `
     <div class="empty">
       <div class="glyph">¶</div>
-      <p>Busca con <code>⌘K</code> o abre el catálogo con <code>⌘B</code>. Los <code>.html</code> se abren aquí mismo, y dentro de uno <code>/</code> busca en su texto.</p>
+      <p>Busca con <code>⌘K</code> o abre el catálogo con <code>⌘B</code>. Los <code>.html</code> y <code>.md</code> se abren aquí mismo, y dentro de uno <code>/</code> busca en su texto.</p>
       <div class="hint">— sala de lectura —</div>
     </div>`;
   document.body.classList.remove('reading');
@@ -738,12 +741,12 @@ async function nodeFromHash(){
     if (!hit) return null;
     node = hit;
   }
-  return isHtml(node) ? node : null;
+  return isDoc(node) ? node : null;
 }
 
 function openDoc(node){
   activeAbs = node.abs;
-  rememberOpen(isHtml(node) ? node : null);
+  rememberOpen(isDoc(node) ? node : null);
   find = null;
   // Cache-bust por mtime: la URL cambia solo cuando cambia el fichero, así el
   // iframe nunca reusa una copia vieja cacheada (un ?v fijo no bastaría).
@@ -751,7 +754,7 @@ function openDoc(node){
   const ext = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3h7v7"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>';
   const pdf  = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>';
   const back = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>';
-  if (!isHtml(node)) window.open(src, '_blank', 'noopener');
+  if (!isDoc(node)) window.open(src, '_blank', 'noopener');
   readerEl.innerHTML = `
     <div class="docview">
       <div class="docbar">
@@ -759,8 +762,8 @@ function openDoc(node){
           <span class="name">${node.name}</span>
           <button class="copy" id="copy-slug" title="Copiar el slug" aria-label="Copiar el slug ${node.name}">${COPY}</button>
         </span>
-        ${isHtml(node) ? `<button class="back" id="toc-btn" title="${tocOpen ? 'Ocultar índice' : 'Mostrar índice'}" hidden>${LIST}índice</button>` : ''}
-        ${isHtml(node) ? `<button class="back" id="pdf" title="Imprimir → Guardar como PDF">${pdf}PDF</button>` : ''}
+        ${isDoc(node) ? `<button class="back" id="toc-btn" title="${tocOpen ? 'Ocultar índice' : 'Mostrar índice'}" hidden>${LIST}índice</button>` : ''}
+        ${isDoc(node) ? `<button class="back" id="pdf" title="Imprimir → Guardar como PDF">${pdf}PDF</button>` : ''}
         ${isShareable(node) ? `<span class="share" id="share" data-abs="${node.abs}">
           <a class="share-link" id="share-link" target="_blank" rel="noopener" hidden>artifact</a>
           <button class="back" id="share-btn" title="${SHARE_TITLE_NEW}">${SHARE}<span class="share-label">compartir</span></button>
@@ -769,7 +772,7 @@ function openDoc(node){
         <a href="${src}" target="_blank" rel="noopener">${ext}pestaña nueva</a>
         <button class="back" id="back">${back}catálogo</button>
       </div>
-      ${isHtml(node) ? `<div class="findbar" id="findbar" hidden>
+      ${isDoc(node) ? `<div class="findbar" id="findbar" hidden>
         ${MAG}
         <input id="find-input" type="text" placeholder="buscar en este artículo…" autocomplete="off" spellcheck="false" data-bwignore="true" aria-label="Buscar en este artículo">
         <span class="find-count" id="find-count"></span>
@@ -783,7 +786,7 @@ function openDoc(node){
       </div>
     </div>`;
   document.body.classList.add('reading');
-  if (isHtml(node)){
+  if (isDoc(node)){
     const fr = readerEl.querySelector('.frame');
     fr.addEventListener('load', () => {
       find = null;

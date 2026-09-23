@@ -632,6 +632,8 @@ setup_scriptorium() {
   local caddy_dst="$HOME/.config/caddy/scriptorium.Caddyfile"
   local browse_src="$DOTFILES/macos/scriptorium-browse.html"
   local browse_dst="$HOME/.config/caddy/scriptorium-browse.html"
+  local md_src="$DOTFILES/macos/scriptorium-md.html"
+  local md_dst="$HOME/.config/caddy/scriptorium-md.html"
   local script_src="$DOTFILES/macos/scriptorium-serve.sh"
   local script_dst="$HOME/.local/bin/scriptorium-serve.sh"
   local plist_src="$DOTFILES/macos/com.fran.scriptorium.plist"
@@ -640,6 +642,7 @@ setup_scriptorium() {
   chmod +x "$script_src"
   safe_link "$caddy_src"  "$caddy_dst"
   safe_link "$browse_src" "$browse_dst"
+  safe_link "$md_src"     "$md_dst"
   safe_link "$script_src" "$script_dst"
   safe_link "$plist_src"  "$plist_dst"
 
@@ -706,11 +709,13 @@ setup_scriptorium_linux() {
   # (puerto 80) que en macOS montan pf + /etc/hosts.
   local caddy_src="$DOTFILES/linux/scriptorium.Caddyfile"
   local caddy_dst="$HOME/.config/caddy/scriptorium.Caddyfile"
-  # La plantilla de listado es agnóstica de plataforma; vive en macos/ porque es
-  # donde nació el scriptorium. Se comparte en vez de duplicarse para que no
-  # deriven dos copias.
+  # Las plantillas del visor (listado y render de .md) son agnósticas de
+  # plataforma; viven en macos/ porque es donde nació el scriptorium. Se
+  # comparten en vez de duplicarse para que no deriven dos copias.
   local browse_src="$DOTFILES/macos/scriptorium-browse.html"
   local browse_dst="$HOME/.config/caddy/scriptorium-browse.html"
+  local md_src="$DOTFILES/macos/scriptorium-md.html"
+  local md_dst="$HOME/.config/caddy/scriptorium-md.html"
   local unit_src="$DOTFILES/linux/scriptorium.service"
   local unit_dst="$HOME/.config/systemd/user/scriptorium.service"
 
@@ -721,6 +726,7 @@ setup_scriptorium_linux() {
 
   safe_link "$caddy_src"  "$caddy_dst"
   safe_link "$browse_src" "$browse_dst"
+  safe_link "$md_src"     "$md_dst"
   safe_link "$unit_src"   "$unit_dst"
 
   # El caddy de usuario (:8081) y el de sistema (:80, reverse proxy en

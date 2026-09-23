@@ -394,6 +394,14 @@ if [[ "$PLATFORM" == "macos" ]]; then
 fi
 
 # ── 7c. macOS: servidor web scriptorium ─────────────────────────────────────
+scriptorium_md_render_ok() {
+  local probe="$HOME/src/html/.test-scriptorium-md.md" out
+  printf '# prueba\n' > "$probe" 2>/dev/null || return 1
+  out="$(curl -fsS --max-time 3 http://localhost:8080/.test-scriptorium-md.md)"
+  rm -f "$probe"
+  grep -q '<h1' <<<"$out"
+}
+
 if [[ "$PLATFORM" == "macos" ]]; then
   section "macOS — scriptorium"
   check "caddy instalado" command -v caddy
@@ -401,11 +409,29 @@ if [[ "$PLATFORM" == "macos" ]]; then
     "$HOME/.config/caddy/scriptorium.Caddyfile" "$DOTFILES/macos/scriptorium.Caddyfile"
   check_symlink "~/.config/caddy/scriptorium-browse.html" \
     "$HOME/.config/caddy/scriptorium-browse.html" "$DOTFILES/macos/scriptorium-browse.html"
+  check_symlink "~/.config/caddy/scriptorium-md.html" \
+    "$HOME/.config/caddy/scriptorium-md.html" "$DOTFILES/macos/scriptorium-md.html"
   check_symlink "~/.local/bin/scriptorium-serve.sh" \
     "$HOME/.local/bin/scriptorium-serve.sh" "$DOTFILES/macos/scriptorium-serve.sh"
   check_symlink "~/Library/LaunchAgents/com.fran.scriptorium.plist" \
     "$HOME/Library/LaunchAgents/com.fran.scriptorium.plist" \
     "$DOTFILES/macos/com.fran.scriptorium.plist"
+  # Render de .md: la fuente de verdad de un plan o una spec se lee en el visor
+  # sin generarle un gemelo .html a mano.
+  check "Caddyfile sirve los .md con la plantilla" \
+    grep -q 'rewrite \* /scriptorium-md.html' "$DOTFILES/macos/scriptorium.Caddyfile"
+  check "Caddyfile de Linux también sirve los .md" \
+    grep -q 'rewrite \* /scriptorium-md.html' "$DOTFILES/linux/scriptorium.Caddyfile"
+  check "la ruta .md exige que el fichero exista" \
+    bash -c "grep -A2 -F '@md {' '$DOTFILES/macos/scriptorium.Caddyfile' | grep -qx $'\t\tfile'"
+  check "plantilla md colorea los bloques de chroma" \
+    grep -q '.chroma .gi' "$DOTFILES/macos/scriptorium-md.html"
+  check "plantilla md tiene hoja de impresión A4" \
+    grep -q '@page{size:A4;margin:14mm}' "$DOTFILES/macos/scriptorium-md.html"
+  check "el catálogo abre los .md en el panel lector" \
+    grep -q 'const isDoc = it => !it.isDir && /\\.(html?|md)\$/i.test(it.name);' \
+    "$DOTFILES/macos/scriptorium-browse.html"
+  check "Caddy renderiza los .md como HTML" scriptorium_md_render_ok
   check "plantilla browse tiene export a PDF" grep -q 'function exportPdf' "$DOTFILES/macos/scriptorium-browse.html"
   check "plantilla browse tiene tiempo de lectura" grep -q 'function readingTime' "$DOTFILES/macos/scriptorium-browse.html"
   check "plantilla browse tiene índice de secciones" grep -q 'function buildToc' "$DOTFILES/macos/scriptorium-browse.html"

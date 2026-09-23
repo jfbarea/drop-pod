@@ -70,6 +70,22 @@ Cuando generes HTML como **output principal** para el usuario (artefactos de `/r
   - Debe verse bien **embebido en un iframe estrecho**: layout responsive, nada de frame-busting ni `target="_top"`, sin asumir que es la ventana top-level (no dependas de `window.top`, popups, ni de la URL de la barra).
   - El dark-mode fijo y el ser autocontenido (reglas de arriba) ya lo hacen consistente con el visor; mantenlos.
 
+### Los `.md` también se leen en el visor
+
+El scriptorium renderiza cualquier `.md` que cuelgue de `~/src/html/` con el estilo de la casa (lo hace
+Caddy con la plantilla `scriptorium-md.html`): front matter en chips, código resaltado, índice de
+secciones y export a PDF, igual que un `.html`. Para leer los planes y specs de un repo sin copiarlos,
+enlaza su carpeta una vez:
+
+```bash
+ln -s ~/src/<repo>/plan ~/src/html/<repo>/plan
+```
+
+Se lee la **fuente de verdad**, así que no se queda vieja. No sustituye al HTML generado cuando el
+documento lleva diagramas SVG o componentes propios (walkthroughs, reviews, research): un markdown
+plano no los tiene. Y desde el visor no se pueden borrar: el bridge rechaza toda ruta cuyo destino real
+cae fuera de `~/src/html`.
+
 ### El scriptorium es personal
 
 El scriptorium corre en mi Mac. `http://scriptorium/…`, `~/src/html/…` y cualquier `file://` de esos
