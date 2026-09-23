@@ -183,6 +183,50 @@ severidad), `.badge` + `.b-*` (severidad/confianza), `.fix` (bloque verde), `.pr
 azul) con `.anchor` + `pre.cmt` + `button.copy`, `.panel` (alcance y descartados), `.tblwrap` (toda tabla
 scrollea dentro de su caja, el body nunca en horizontal).
 
+## Comentarios en el código
+
+**El test, antes de escribir un comentario:** ¿esta información está en el código, o puede estarlo? Si la
+respuesta es sí, el comentario no se escribe — se arregla el código. Si es no, el comentario es obligatorio.
+
+**Cero comentarios sobre el qué.** Nada que describa lo que hace la línea o el bloque siguiente. Si un
+fragmento no se entiende sin comentario, refactoriza (renombra, extrae función, parte el fichero) hasta que
+se entienda solo. Ningún comentario es coartada de un nombre malo.
+
+**Sí a las cuatro clases que el código no puede contener.** Lista cerrada; lo que no esté aquí no lleva
+comentario:
+
+1. **Hechos del entorno externo, con el dato concreto.** Versión que rompe, mensaje de error literal,
+   comportamiento de una herramienta de terceros, nombre distinto de un paquete por distro. Ejemplo:
+   `# Debian empaqueta bat como 'batcat'`.
+2. **Alternativas descartadas.** Lo que se intentó y falló, y por qué. El código solo guarda la rama que
+   sobrevivió; sin esto se vuelve a proponer el refactor que ya falló.
+3. **Invariantes no locales.** Orden obligatorio entre pasos, precondiciones que el caller debe cumplir,
+   acoplamientos a distancia. Un orden obligatorio es indistinguible de un orden accidental.
+4. **«Esto raro es a propósito».** Cuando el código parece un bug y no lo es, el marcador es lo único que
+   evita que alguien lo «arregle».
+
+**Formato.** Una a tres líneas, pegadas a la línea que sorprende, no en un bloque de cabecera. Con el dato
+verificable dentro (la versión, el número, el error, el flag): un porqué vago no vale para nada.
+
+**El porqué del diseño propio va al commit o a la PR**, no al código. El comentario es solo para lo que hay
+que saber teniendo el fichero delante y que no se puede deducir de él.
+
+**Para un invariante que no puede romperse, escribe un test, no un comentario.** Un test que falla para en
+seco; un comentario solo baja la probabilidad de que se rompa.
+
+**Sin banners ni separadores decorativos** (`# ── Helpers ──`) en código nuevo. Los que ya existan en un
+fichero se respetan.
+
+**Comentarios existentes: no los barras de paso.** Al editar un fichero no elimines sus comentarios salvo
+que (a) el comentario contradiga al código — entonces bórralo o corrígelo, un comentario obsoleto es peor
+que ninguno —, o (b) el usuario lo pida. Limpiar comentarios es una tarea propia, no un efecto colateral.
+
+**Idioma:** el del repo. Si los comentarios existentes están en inglés, inglés; si el fichero está vacío de
+convención, español, como los commits y las PRs.
+
+**Docs de API pública** (docstrings, JSDoc, godoc) no son comentarios a estos efectos: si el repo las usa
+como convención, síguelas. La regla aplica al comentario dentro de una implementación.
+
 ## Commits y trabajo
 
 - **Commitea al terminar la tarea, sin esperar a que te lo pidan.** Cuando acabes un trabajo y el working tree tenga cambios, agrúpalos en commits atómicos y commitéalos con la misma calidad que `/commit`: un cambio lógico por commit, mensaje `tipo(scope): resumen` en imperativo, el porqué en el cuerpo cuando no sea obvio. No dejes cambios colgando en el working tree como estado final.

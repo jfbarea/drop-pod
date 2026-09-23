@@ -295,6 +295,23 @@ check "/clickup no enlaza el scriptorium al comentar" \
   grep -q 'sin enlaces ni referencias al scriptorium' \
     "$DOTFILES/claudeconfig/.claude/commands/clickup.md"
 
+# ── 6d. Comentarios en el código ─────────────────────────────────────────────
+section "Comentarios en el código"
+check "el CLAUDE.md global fija la regla" \
+  grep -q '^## Comentarios en el código' "$global_md"
+check "la regla es un test, no un criterio" \
+  grep -q 'El test, antes de escribir un comentario' "$global_md"
+check "cero comentarios sobre el qué" \
+  grep -q 'Cero comentarios sobre el qué' "$global_md"
+check "las clases permitidas son lista cerrada" \
+  grep -q 'Lista cerrada' "$global_md"
+check "el porqué del diseño va al commit o la PR" \
+  grep -q 'porqué del diseño propio va al commit' "$global_md"
+check "un invariante duro se protege con un test" \
+  grep -q 'escribe un test, no un comentario' "$global_md"
+check "no se barren los comentarios existentes" \
+  grep -q 'no los barras de paso' "$global_md"
+
 # ── 7. Permisos ───────────────────────────────────────────────────────────────
 section "Permisos de ficheros"
 check "~/.claude/hooks/notify-stop.sh ejecutable"      test -x "$HOME/.claude/hooks/notify-stop.sh"
