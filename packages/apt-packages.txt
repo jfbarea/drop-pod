@@ -32,5 +32,6 @@ python3-markdown
 #   eza       — tarball from https://github.com/eza-community/eza/releases
 #   starship  — install script from https://starship.rs/install.sh
 #   tldr      — tealdeer binary from https://github.com/dbrgn/tealdeer/releases
+#   glow      — tarball from https://github.com/charmbracelet/glow/releases
 #   corepack  — npm install -g corepack (ya no viene en el paquete nodejs de apt)
 #   awscli    — instalador oficial AWS CLI v2 (apt solo trae v1 obsoleto); requiere unzip

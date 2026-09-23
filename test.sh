@@ -68,7 +68,7 @@ fi
 
 # ── 2. Binarios de GitHub Releases ────────────────────────────────────────────
 section "Binarios de GitHub Releases"
-for bin in nvim delta lazygit eza starship tldr; do
+for bin in nvim delta lazygit eza starship tldr glow; do
   check "$bin" command -v "$bin"
 done
 

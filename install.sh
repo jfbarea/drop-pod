@@ -199,6 +199,27 @@ install_linux_extras() {
     ok "eza already installed"
   fi
 
+  # glow — lector de markdown en la terminal; no está en apt de Debian/Raspbian
+  if ! command -v glow &>/dev/null; then
+    step "Installing glow..."
+    ver="$(curl -fsSL https://api.github.com/repos/charmbracelet/glow/releases/latest \
+      | grep '"tag_name"' | cut -d'"' -f4 | sed 's/v//')"
+    case "$ARCH" in
+      x86_64)  gsuf="x86_64" ;;
+      aarch64) gsuf="arm64" ;;
+    esac
+    url="https://github.com/charmbracelet/glow/releases/download/v${ver}/glow_${ver}_Linux_${gsuf}.tar.gz"
+    tmp="$(mktemp -d)"
+    # El tarball de glow envuelve todo en glow_<ver>_Linux_<arch>/ (LICENSE,
+    # completions, manpages y el binario), a diferencia de los de eza/lazygit.
+    curl -fsSL "$url" | tar -xz -C "$tmp"
+    sudo install -m 755 "$tmp/glow_${ver}_Linux_${gsuf}/glow" /usr/local/bin/glow
+    rm -rf "$tmp"
+    ok "glow installed"
+  else
+    ok "glow already installed"
+  fi
+
   # starship
   if ! command -v starship &>/dev/null; then
     step "Installing starship..."

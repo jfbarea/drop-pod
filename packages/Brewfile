@@ -24,6 +24,7 @@ brew "zoxide"          # cd inteligente con historial
 brew "mise"            # gestor de versiones de runtimes (node, python, ruby…)
 brew "htop"
 brew "tldr"            # man pages simplificadas
+brew "glow"            # lector de markdown en la terminal (planes y specs)
 brew "tree"
 brew "curl"
 brew "awscli"          # AWS CLI v2
