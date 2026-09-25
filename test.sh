@@ -141,6 +141,7 @@ check_symlink "~/.claude/hooks/notify-attention.sh" "$HOME/.claude/hooks/notify-
 check_symlink "~/.claude/hooks/ghostty-focus.sh" "$HOME/.claude/hooks/ghostty-focus.sh" "$DOTFILES/claudeconfig/.claude/hooks/ghostty-focus.sh"
 check_symlink "~/.claude/hooks/claude-focus-last.sh" "$HOME/.claude/hooks/claude-focus-last.sh" "$DOTFILES/claudeconfig/.claude/hooks/claude-focus-last.sh"
 check_symlink "~/.claude/hooks/block-protected-push.sh" "$HOME/.claude/hooks/block-protected-push.sh" "$DOTFILES/claudeconfig/.claude/hooks/block-protected-push.sh"
+check_symlink "~/.claude/hooks/check-comment-density.sh" "$HOME/.claude/hooks/check-comment-density.sh" "$DOTFILES/claudeconfig/.claude/hooks/check-comment-density.sh"
 check_symlink "~/.claude/agents/architect.md"  "$HOME/.claude/agents/architect.md"   "$DOTFILES/claudeconfig/.claude/agents/architect.md"
 check_symlink "~/.claude/agents/builder.md"    "$HOME/.claude/agents/builder.md"     "$DOTFILES/claudeconfig/.claude/agents/builder.md"
 check_symlink "~/.claude/agents/reviewer.md"   "$HOME/.claude/agents/reviewer.md"    "$DOTFILES/claudeconfig/.claude/agents/reviewer.md"
@@ -312,6 +313,7 @@ check "un invariante duro se protege con un test" \
 check "no se barren los comentarios existentes" \
   grep -q 'no los barras de paso' "$global_md"
 
+
 # ── 7. Permisos ───────────────────────────────────────────────────────────────
 section "Permisos de ficheros"
 check "~/.claude/hooks/notify-stop.sh ejecutable"      test -x "$HOME/.claude/hooks/notify-stop.sh"
@@ -319,6 +321,7 @@ check "~/.claude/hooks/notify-attention.sh ejecutable" test -x "$HOME/.claude/ho
 check "~/.claude/hooks/ghostty-focus.sh ejecutable"    test -x "$HOME/.claude/hooks/ghostty-focus.sh"
 check "~/.claude/hooks/claude-focus-last.sh ejecutable" test -x "$HOME/.claude/hooks/claude-focus-last.sh"
 check "~/.claude/hooks/block-protected-push.sh ejecutable" test -x "$HOME/.claude/hooks/block-protected-push.sh"
+check "~/.claude/hooks/check-comment-density.sh ejecutable" test -x "$HOME/.claude/hooks/check-comment-density.sh"
 check "notify-stop usa alerter"      grep -q 'alerter' "$HOME/.claude/hooks/notify-stop.sh"
 check "notify-attention usa alerter" grep -q 'alerter' "$HOME/.claude/hooks/notify-attention.sh"
 check "notify-stop escribe last-notify"      grep -q 'last-notify' "$HOME/.claude/hooks/notify-stop.sh"
@@ -709,6 +712,43 @@ check "la excepción no alcanza a otros repos"        push_hook_verdict main 'gi
 check "la excepción no alcanza a nombres parecidos"  push_hook_verdict main 'git push' deny "git@github.com:jfbarea/drop-pod-otro.git"
 check "la excepción no tapa una rama indeterminable" push_hook_verdict feature/x 'git push origin "$RAMA"' deny "$dp_ssh"
 check "sin remote sigue protegido"                  push_hook_verdict main 'git push' deny
+
+check "hook PostToolUse llama a check-comment-density" \
+  jq -e '.hooks.PostToolUse[] | select(.matcher=="Write|Edit") | .hooks[] | select(.type=="command") | .command | test("check-comment-density.sh")' "$claude_settings"
+
+comment_hook="$HOME/.claude/hooks/check-comment-density.sh"
+comment_payload() {
+  jq -n --arg t "$1" --arg f "$2" --arg new "$3" --arg old "${4:-}" \
+    '{tool_name:$t, tool_input:{file_path:$f, content:$new, new_string:$new, old_string:$old}}'
+}
+comment_hook_verdict() {
+  local expected="$1" payload="$2" output verdict
+  output="$(printf '%s' "$payload" | "$comment_hook")"
+  if printf '%s' "$output" | jq -e 'has("systemMessage")' >/dev/null 2>&1; then
+    verdict="warn"
+  else
+    verdict="silent"
+  fi
+  [[ "$verdict" == "$expected" ]]
+}
+check "avisa de un bloque de comentarios en .sh" \
+  comment_hook_verdict warn "$(comment_payload Write /x/a.sh "$(printf '#!/usr/bin/env bash\n# a\n# b\n# c\n# d\necho hola\n')")"
+check "avisa de comentarios añadidos en un Edit de .py" \
+  comment_hook_verdict warn "$(comment_payload Edit /x/a.py "$(printf '# a\n# b\n# c\n# d\nx = 1\n')" "$(printf 'x = 1\n')")"
+check "avisa de un bloque JSDoc en .ts" \
+  comment_hook_verdict warn "$(comment_payload Edit /x/a.ts "$(printf '/**\n * hace cosas\n * @param x\n */\nconst a = 1\n')" "$(printf 'const a = 1\n')")"
+check "calla ante un comentario suelto entre código" \
+  comment_hook_verdict silent "$(comment_payload Edit /x/a.sh "$(printf '# el unico\na\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\n')")"
+check "calla ante un shebang solo" \
+  comment_hook_verdict silent "$(comment_payload Write /x/a.sh "$(printf '#!/usr/bin/env bash\necho hola\n')")"
+check "calla cuando el Edit borra comentarios" \
+  comment_hook_verdict silent "$(comment_payload Edit /x/a.sh "$(printf 'x=1\n')" "$(printf '# a\n# b\n# c\n# d\nx=1\n')")"
+check "ignora ficheros que no son código" \
+  comment_hook_verdict silent "$(comment_payload Write /x/a.md "$(printf '# t1\n# t2\n# t3\n# t4\n')")"
+check "ignora herramientas que no escriben" \
+  comment_hook_verdict silent "$(jq -n '{tool_name:"Bash", tool_input:{command:"ls"}}')"
+check "el umbral es configurable por entorno" \
+  grep -q 'CLAUDE_COMMENT_MAX_ADDED' "$DOTFILES/claudeconfig/.claude/hooks/check-comment-density.sh"
 
 check "statusLine configurado"         jq -e '.statusLine.type == "command"' "$claude_settings"
 check "statusLine apunta a statusline.sh" \
