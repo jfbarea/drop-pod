@@ -98,6 +98,10 @@
       }
     ]
   },
+  "statusLine": {
+    "type": "command",
+    "command": "sh \"$HOME/.claude/statusline.sh\""
+  },
   "enabledPlugins": {
     "codex@openai-codex": true,
     "clangd-lsp@claude-plugins-official": true
@@ -113,9 +117,5 @@
   "tui": "fullscreen",
   "theme": "dark",
   "preferredNotifChannel": "ghostty",
-  "agentPushNotifEnabled": true,
-  "statusLine": {
-    "type": "command",
-    "command": "sh \"$HOME/.claude/statusline.sh\""
-  }
+  "agentPushNotifEnabled": true
 }
