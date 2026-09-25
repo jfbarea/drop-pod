@@ -702,6 +702,12 @@ setup_hammerspoon() {
   fi
 }
 
+setup_space_hotkeys() {
+  # ctrl+1..9 → escritorio N. macOS solo trae los atajos de los escritorios que
+  # existen, así que el script crea los que falten antes de activarlos.
+  bash "$DOTFILES/macos/space-hotkeys.sh"
+}
+
 setup_scriptorium_linux() {
   # Equivalente Linux de setup_scriptorium: mismo servidor, pero en :8081 (el
   # 8080 lo ocupa magos-wiki.service), arrancado por una unit de usuario de
@@ -867,6 +873,11 @@ fi
 # macOS: triple Shift → foco a la última sesión de Claude en Ghostty (Hammerspoon)
 if [[ "$PLATFORM" == "macos" ]]; then
   run_step "hammerspoon" setup_hammerspoon
+fi
+
+# macOS: ctrl+1..9 salta al escritorio N (9 escritorios + symbolichotkeys)
+if [[ "$PLATFORM" == "macos" ]]; then
+  run_step "space-hotkeys" setup_space_hotkeys
 fi
 
 # Linux: acceso por nombre .local (scriptorium/strategium) vía CNAMEs mDNS +

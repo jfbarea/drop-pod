@@ -515,7 +515,22 @@ if [[ "$PLATFORM" == "macos" ]]; then
   check "Hammerspoon en ejecución" pgrep -xq Hammerspoon
 fi
 
-# ── 7g. macOS: Tailscale ──────────────────────────────────────────────────────
+# ── 7g. macOS: atajos de escritorio (ctrl+1..9) ───────────────────────────────
+if [[ "$PLATFORM" == "macos" ]]; then
+  section "macOS — atajos de escritorio (ctrl+1..9)"
+  check "space-hotkeys.sh existe" test -x "$DOTFILES/macos/space-hotkeys.sh"
+  check "install.sh invoca space-hotkeys" \
+    grep -q 'run_step "space-hotkeys"' "$DOTFILES/install.sh"
+  check "la pantalla principal tiene 9 escritorios" \
+    bash -c '[[ "$(hs -c "return #hs.spaces.allSpaces()[hs.screen.mainScreen():getUUID()]" 2>/dev/null | tail -1)" -ge 9 ]]'
+  # "Switch to Desktop N" es el hotkey simbólico 117+N; 262144 es el modificador ctrl.
+  check "symbolichotkeys 118..126 activos con ctrl" \
+    bash -c 'defaults export com.apple.symbolichotkeys - | plutil -convert json -o - - |
+      jq -e ".AppleSymbolicHotKeys as \$h |
+             all(range(118;127); \$h[tostring] | .enabled == true and .value.parameters[2] == 262144)" >/dev/null'
+fi
+
+# ── 7h. macOS: Tailscale ──────────────────────────────────────────────────────
 if [[ "$PLATFORM" == "macos" ]]; then
   section "macOS — Tailscale"
   check "Brewfile.tailscale existe" test -f "$DOTFILES/packages/Brewfile.tailscale"
@@ -541,13 +556,13 @@ if [[ "$PLATFORM" == "macos" ]]; then
   fi
 fi
 
-# ── 7h. macOS: VLC ────────────────────────────────────────────────────────────
+# ── 7i. macOS: VLC ────────────────────────────────────────────────────────────
 if [[ "$PLATFORM" == "macos" ]]; then
   section "macOS — VLC"
   check "VLC instalado" test -d "/Applications/VLC.app"
 fi
 
-# ── 7i. SSH: alias de host ────────────────────────────────────────────────────
+# ── 7j. SSH: alias de host ────────────────────────────────────────────────────
 section "SSH (~/.ssh/config.d/)"
 ssh_conf="$DOTFILES/ssh/.ssh/config.d/ratatoskr.conf"
 check_symlink "~/.ssh/config.d/ratatoskr.conf" \
@@ -567,7 +582,7 @@ check "alias ratatoskr-ts resuelve al nombre MagicDNS" \
 check "los dos alias usan el usuario fran" \
   bash -c '[[ "$(ssh -G ratatoskr | awk "/^user /{print \$2}")" == "fran" && "$(ssh -G ratatoskr-ts | awk "/^user /{print \$2}")" == "fran" ]]'
 
-# ── 7i. starship: timeouts del prompt ─────────────────────────────────────────
+# ── 7k. starship: timeouts del prompt ─────────────────────────────────────────
 section "starship (~/.config/starship.toml)"
 starship_conf="$DOTFILES/starship/.config/starship.toml"
 check_symlink "~/.config/starship.toml" \
