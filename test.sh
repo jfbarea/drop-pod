@@ -142,6 +142,7 @@ check_symlink "~/.claude/hooks/ghostty-focus.sh" "$HOME/.claude/hooks/ghostty-fo
 check_symlink "~/.claude/hooks/claude-focus-last.sh" "$HOME/.claude/hooks/claude-focus-last.sh" "$DOTFILES/claudeconfig/.claude/hooks/claude-focus-last.sh"
 check_symlink "~/.claude/hooks/block-protected-push.sh" "$HOME/.claude/hooks/block-protected-push.sh" "$DOTFILES/claudeconfig/.claude/hooks/block-protected-push.sh"
 check_symlink "~/.claude/hooks/check-comment-density.sh" "$HOME/.claude/hooks/check-comment-density.sh" "$DOTFILES/claudeconfig/.claude/hooks/check-comment-density.sh"
+check_symlink "~/.codex/AGENTS.md"             "$HOME/.codex/AGENTS.md"              "$DOTFILES/claudeconfig/.codex/AGENTS.md"
 check_symlink "~/.claude/agents/architect.md"  "$HOME/.claude/agents/architect.md"   "$DOTFILES/claudeconfig/.claude/agents/architect.md"
 check_symlink "~/.claude/agents/builder.md"    "$HOME/.claude/agents/builder.md"     "$DOTFILES/claudeconfig/.claude/agents/builder.md"
 check_symlink "~/.claude/agents/reviewer.md"   "$HOME/.claude/agents/reviewer.md"    "$DOTFILES/claudeconfig/.claude/agents/reviewer.md"
@@ -313,6 +314,22 @@ check "un invariante duro se protege con un test" \
 check "no se barren los comentarios existentes" \
   grep -q 'no los barras de paso' "$global_md"
 
+codex_md="$DOTFILES/claudeconfig/.codex/AGENTS.md"
+check "codex tiene su propio AGENTS.md" test -f "$codex_md"
+check "el AGENTS.md de codex copia la regla, no la referencia" \
+  grep -q 'Cero comentarios sobre el qué' "$codex_md"
+check "el AGENTS.md de codex enumera las cuatro clases" \
+  grep -q 'Lista cerrada' "$codex_md"
+check "el AGENTS.md de codex no remite al CLAUDE.md" \
+  bash -c "! grep -q 'CLAUDE.md' '$codex_md'"
+check "el AGENTS.md de codex veta el push a ramas protegidas" \
+  grep -q 'No hagas `git push` a `main`' "$codex_md"
+for agent in builder worker; do
+  check "el agente $agent tiene la regla en su DoD" \
+    grep -q 'Comentarios en el código' "$DOTFILES/claudeconfig/.claude/agents/$agent.md"
+done
+check "el agente debugger manda el porqué al commit" \
+  grep -q 'porqué del fix va al mensaje de commit' "$DOTFILES/claudeconfig/.claude/agents/debugger.md"
 
 # ── 7. Permisos ───────────────────────────────────────────────────────────────
 section "Permisos de ficheros"

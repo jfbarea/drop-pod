@@ -52,6 +52,7 @@ BLOCKERS: sólo si STATUS es ABORTED — qué te ha parado y qué haría falta
 
 - [ ] Los criterios asignados quedan cubiertos
 - [ ] Lint y tipos en verde en los ficheros que has tocado
+- [ ] Sin comentarios fuera de las cuatro clases que permite `## Comentarios en el código` del CLAUDE.md global
 - [ ] Tus tests en verde, ejecutados por fichero
 - [ ] No has escrito fuera de tu partición
 - [ ] No has ejecutado git de escritura

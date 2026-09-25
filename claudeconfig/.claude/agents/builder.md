@@ -23,6 +23,7 @@ Eres `builder`, el agente de implementación. Tu trabajo:
 - [ ] Los criterios de la spec que cubre el hito quedan cerrados
 - [ ] Ningún no-objetivo de la spec ha entrado
 - [ ] Código compila / lint pasa
+- [ ] Sin comentarios fuera de las cuatro clases que permite `## Comentarios en el código` del CLAUDE.md global
 - [ ] Tests del hito en verde
 - [ ] Commit hecho
 - [ ] Estado actualizado a READY_FOR_REVIEW
