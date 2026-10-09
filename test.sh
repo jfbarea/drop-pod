@@ -637,7 +637,8 @@ check "función serve definida"       grep -q '^serve()'                  "$HOME
 check "JAVA_HOME (Android Studio JBR)" grep -q 'JAVA_HOME'               "$HOME/.zshrc"
 check "ANDROID_HOME en PATH"         grep -q 'ANDROID_HOME'              "$HOME/.zshrc"
 check "~/.tolkien_quotes existe"     test -f "$HOME/.tolkien_quotes"
-check "~/.motd.sh existe"            test -f "$HOME/.motd.sh"
+check "~/.lorca_verses existe"      test -f "$HOME/.lorca_verses"
+check "~/.motd.sh existe"           test -f "$HOME/.motd.sh"
 check "sourcea ~/.zshrc.local"       grep -q 'zshrc.local'               "$HOME/.zshrc"
 
 # ── 9b. Secretos locales (nunca versionados) ──────────────────────────────────

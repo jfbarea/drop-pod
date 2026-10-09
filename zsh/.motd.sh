@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tolkien welcome — sourced by .zshrc en cada shell interactiva fuera de tmux.
+# Bienvenida Tolkien + Lorca — sourced by .zshrc en cada shell interactiva fuera de tmux.
 # Compatible con Linux (raspi, debian) y macOS.
 
 _B='\033[1m'; _I='\033[3m'; _D='\033[2m'
@@ -21,13 +21,16 @@ _bar() {
 }
 
 # ── Quote ─────────────────────────────────────────────────────────────────
-_qf="$HOME/.tolkien_quotes"
-if [[ -f "$_qf" ]]; then
+_qf=()
+for _f in "$HOME/.tolkien_quotes" "$HOME/.lorca_verses"; do
+  [[ -f "$_f" ]] && _qf+=("$_f")
+done
+if (( ${#_qf[@]} )); then
   if command -v shuf &>/dev/null; then
-    _qline="$(shuf -n 1 "$_qf")"
+    _qline="$(cat "${_qf[@]}" | shuf -n 1)"
   else
     # macOS no trae shuf por defecto — fallback con awk
-    _qline="$(awk 'BEGIN{srand()} {a[NR]=$0} END{print a[int(rand()*NR)+1]}' "$_qf")"
+    _qline="$(cat "${_qf[@]}" | awk 'BEGIN{srand()} {a[NR]=$0} END{print a[int(rand()*NR)+1]}')"
   fi
   IFS='|' read -r _qt _at <<< "$_qline"
   printf '\n'
@@ -122,6 +125,6 @@ _sep
 printf '\n'
 
 unset _B _I _D _C _G _Y _R
-unset _qf _qt _at _ql _qline _host _os _kern _up _load _ip _os_kind
+unset _qf _f _qt _at _ql _qline _host _os _kern _up _load _ip _os_kind
 unset _btime _sec _d _h _m _ps _free_pg _inact_pg _iface
 unset _mt _ma _mu _mtm _mp _du _dt _dp _nc _l1 _cp _tmp

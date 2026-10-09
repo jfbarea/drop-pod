@@ -86,7 +86,7 @@ fi
 # ── Secretos locales (fuera del repo de dotfiles) ─────────────────────────
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
 
-# ── Bienvenida Tolkien (toda shell interactiva fuera de tmux) ─────────────
+# ── Bienvenida Tolkien + Lorca (toda shell interactiva fuera de tmux) ─────────────
 [[ -z "${TMUX:-}" && -f "$HOME/.motd.sh" ]] && source "$HOME/.motd.sh"
 export PATH="$HOME/.local/bin:$PATH"
 eval "$(mise activate zsh)"
