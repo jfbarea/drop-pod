@@ -165,6 +165,9 @@ check_symlink "~/.claude/commands/ask.md"          "$HOME/.claude/commands/ask.m
 check_symlink "~/.claude/commands/commit.md"       "$HOME/.claude/commands/commit.md"       "$DOTFILES/claudeconfig/.claude/commands/commit.md"
 check_symlink "~/.claude/commands/clickup.md"      "$HOME/.claude/commands/clickup.md"      "$DOTFILES/claudeconfig/.claude/commands/clickup.md"
 check_symlink "~/.claude/commands/walkthrough.md"  "$HOME/.claude/commands/walkthrough.md"  "$DOTFILES/claudeconfig/.claude/commands/walkthrough.md"
+check_symlink "~/.claude/commands/quiz.md"         "$HOME/.claude/commands/quiz.md"         "$DOTFILES/claudeconfig/.claude/commands/quiz.md"
+check_symlink "~/.claude/quiz/template.html"       "$HOME/.claude/quiz/template.html"       "$DOTFILES/claudeconfig/.claude/quiz/template.html"
+check_symlink "~/.claude/quiz/check.py"            "$HOME/.claude/quiz/check.py"            "$DOTFILES/claudeconfig/.claude/quiz/check.py"
 check_symlink "~/.claude/commands/code-review-scriptorium.md" \
   "$HOME/.claude/commands/code-review-scriptorium.md" \
   "$DOTFILES/claudeconfig/.claude/commands/code-review-scriptorium.md"
@@ -293,6 +296,17 @@ check "nada de enlaces al scriptorium en una PR" \
   grep -q 'Nada de enlaces al scriptorium en una PR' "$global_md"
 check "el comentario de PR no remite al informe" \
   grep -q 'El comentario se lee en GitHub' "$global_md"
+quiz_cmd="$DOTFILES/claudeconfig/.claude/commands/quiz.md"
+check "/quiz hereda las reglas de Output en HTML" \
+  grep -q 'Output en HTML' "$quiz_cmd"
+check "/quiz exige opciones sin pistas por longitud" \
+  grep -q '^### Opciones sin pistas' "$quiz_cmd"
+check "/quiz valida el HTML con check.py" \
+  grep -q 'quiz/check.py' "$quiz_cmd"
+check "/quiz no se encadena desde /feature ni /debug" \
+  bash -c "! grep -q '/quiz\|quiz\.md' '$DOTFILES/claudeconfig/.claude/commands/feature.md' '$DOTFILES/claudeconfig/.claude/commands/debug.md'"
+check "check.py parsea" \
+  python3 -c 'import ast, sys; ast.parse(open(sys.argv[1]).read())' "$DOTFILES/claudeconfig/.claude/quiz/check.py"
 check "/clickup no enlaza el scriptorium al comentar" \
   grep -q 'sin enlaces ni referencias al scriptorium' \
     "$DOTFILES/claudeconfig/.claude/commands/clickup.md"

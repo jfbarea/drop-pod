@@ -284,6 +284,7 @@ Comandos disponibles globalmente en cualquier sesión de Claude Code:
 | `/audit` | Revisión proactiva del proyecto en busca de bugs |
 | `/code-review-scriptorium` | Code review con el motor built-in y el informe completo en el scriptorium |
 | `/walkthrough` | Recorrido diff a diff de un cambio o PR, en HTML, para el scriptorium |
+| `/quiz` | Quiz interactivo sobre un cambio o PR, para comprobar que lo entiendes antes de la review |
 | `/ask` | Dudas sobre el repo. Solo lectura |
 | `/clickup` | Lee un issue de ClickUp por su URL y lo implementa |
 | `/commit` | Trocea lo que hay sin commitear en commits atómicos |
