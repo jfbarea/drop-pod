@@ -223,13 +223,28 @@ login() {
   ok "$arn"
 }
 
+session_expiry_hhmm() {
+  local expires
+  expires="$(awk -v s="[$PROFILE]" '
+    /^\[/ { in_profile = ($0 == s) }
+    in_profile && $1 == "x_security_token_expires" { sub(/^[^=]*= */, ""); print; exit }
+  ' "$HOME/.aws/credentials" 2>/dev/null)"
+  printf '%s' "${expires:11:5}"
+}
+
 main() {
   detect_platform
   install_saml2aws
   install_awscli
   configure
   login
-  printf "\n${BOLD}Listo.${RST} La sesión dura 1 h; para renovarla, vuelve a ejecutar este script.\n"
+  local expiry
+  expiry="$(session_expiry_hhmm)"
+  if [[ -n "$expiry" ]]; then
+    printf "\n${BOLD}Listo.${RST} La sesión caduca a las ${BOLD}%s${RST}; para renovarla, vuelve a ejecutar este script.\n" "$expiry"
+  else
+    printf "\n${BOLD}Listo.${RST} La sesión dura 1 h; para renovarla, vuelve a ejecutar este script.\n"
+  fi
   printf "Para usarla en esta terminal:  ${BOLD}export AWS_PROFILE=%s${RST}\n" "$PROFILE"
 }
 
