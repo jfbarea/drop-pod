@@ -26,11 +26,13 @@ for _f in "$HOME/.tolkien_quotes" "$HOME/.lorca_verses"; do
   [[ -f "$_f" ]] && _qf+=("$_f")
 done
 if (( ${#_qf[@]} )); then
+  # ${arr[@]:n:1} es 0-based tanto en bash como en zsh; ${arr[n]} no.
+  _f="${_qf[@]:$(( RANDOM % ${#_qf[@]} )):1}"
   if command -v shuf &>/dev/null; then
-    _qline="$(cat "${_qf[@]}" | shuf -n 1)"
+    _qline="$(shuf -n 1 "$_f")"
   else
     # macOS no trae shuf por defecto — fallback con awk
-    _qline="$(cat "${_qf[@]}" | awk 'BEGIN{srand()} {a[NR]=$0} END{print a[int(rand()*NR)+1]}')"
+    _qline="$(awk 'BEGIN{srand()} {a[NR]=$0} END{print a[int(rand()*NR)+1]}' "$_f")"
   fi
   IFS='|' read -r _qt _at <<< "$_qline"
   printf '\n'
