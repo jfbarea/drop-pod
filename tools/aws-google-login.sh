@@ -188,14 +188,16 @@ configure() {
   [[ -n "$profile" ]] || profile="$(ask 'Nombre del perfil de AWS' '')"
   username="$(ask 'Email de Google' "$(ini_value username)")"
 
-  saml2aws configure \
+  local out
+  out="$(saml2aws configure \
     --idp-provider GoogleApps \
     --mfa Auto \
     --url "$url" \
     --username "$username" \
     --profile "$profile" \
     --session-duration 3600 \
-    --skip-prompt >/dev/null
+    --skip-prompt 2>&1)" || die "saml2aws configure falló:
+$out"
   aws configure set region "$AWS_REGION" --profile "$profile"
   PROFILE="$profile"
   ok "perfil '$PROFILE' en $AWS_REGION"
@@ -203,7 +205,9 @@ configure() {
 
 login() {
   step "Login con Google"
-  local cmd=(saml2aws login --skip-prompt)
+  # Sin --skip-prompt a propósito: en 2.36.19 también se salta la pregunta de la contraseña y la toma
+  # del llavero; en una máquina limpia falla con "Error validating login details.: Empty password".
+  local cmd=(saml2aws login)
   # WSL y Linux sin escritorio no tienen servicio de keyring, y saml2aws falla al guardar la contraseña.
   [[ "$OS" == linux ]] && cmd+=(--disable-keychain)
   # mintty (la consola por defecto de Git Bash) no es una consola de Windows: sin winpty, saml2aws.exe
@@ -211,7 +215,7 @@ login() {
   if [[ "$OS" == windows && "${TERM_PROGRAM:-}" == mintty ]] && command -v winpty >/dev/null 2>&1; then
     cmd=(winpty "${cmd[@]}")
   fi
-  "${cmd[@]}"
+  "${cmd[@]}" || die "saml2aws login falló (mira el error justo encima)."
 
   local arn
   arn="$(aws sts get-caller-identity --profile "$PROFILE" --query Arn --output text)" ||
