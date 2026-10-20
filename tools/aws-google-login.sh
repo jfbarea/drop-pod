@@ -3,7 +3,7 @@
 #
 # Uso: bash aws-google-login.sh
 #   - La primera vez instala saml2aws y awscli, configura el perfil y hace login.
-#   - Las siguientes solo hace login (la sesión dura 1 h). Volver a ejecutarlo es la forma de renovarla.
+#   - Las siguientes solo hace login (la sesión dura 8 h). Volver a ejecutarlo es la forma de renovarla.
 #
 # Funciona en macOS, Linux, WSL y Git Bash (Windows).
 set -euo pipefail
@@ -195,7 +195,7 @@ configure() {
     --url "$url" \
     --username "$username" \
     --profile "$profile" \
-    --session-duration 3600 \
+    --session-duration 28800 \
     --skip-prompt 2>&1)" || die "saml2aws configure falló:
 $out"
   aws configure set region "$AWS_REGION" --profile "$profile"
@@ -243,7 +243,7 @@ main() {
   if [[ -n "$expiry" ]]; then
     printf "\n${BOLD}Listo.${RST} La sesión caduca a las ${BOLD}%s${RST}; para renovarla, vuelve a ejecutar este script.\n" "$expiry"
   else
-    printf "\n${BOLD}Listo.${RST} La sesión dura 1 h; para renovarla, vuelve a ejecutar este script.\n"
+    printf "\n${BOLD}Listo.${RST} La sesión dura 8 h; para renovarla, vuelve a ejecutar este script.\n"
   fi
   printf "Para usarla en esta terminal:  ${BOLD}export AWS_PROFILE=%s${RST}\n" "$PROFILE"
 }
