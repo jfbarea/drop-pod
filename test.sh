@@ -654,6 +654,8 @@ check "~/.tolkien_quotes existe"     test -f "$HOME/.tolkien_quotes"
 check "~/.lorca_verses existe"      test -f "$HOME/.lorca_verses"
 check "~/.motd.sh existe"           test -f "$HOME/.motd.sh"
 check "sourcea ~/.zshrc.local"       grep -q 'zshrc.local'               "$HOME/.zshrc"
+check "alias awslogin definido"      grep -q '^alias awslogin='          "$HOME/.zshrc"
+check "tools/aws-google-login.sh ejecutable" test -x "$DOTFILES/tools/aws-google-login.sh"
 
 # ── 9b. Secretos locales (nunca versionados) ──────────────────────────────────
 section "Secretos locales (~/.zshrc.local)"
@@ -670,6 +672,8 @@ ntfy_topic_no_versionado() {
 check "~/.zshrc.local no está en el repo" zshrc_local_no_versionado
 check "*.local ignorado por git"          zshrc_local_ignorado
 check "NTFY_TOPIC no está en el .zshrc versionado" ntfy_topic_no_versionado
+check "AWS_PROFILE no está en el .zshrc versionado" \
+  bash -c '! grep -qE "^[[:space:]]*export[[:space:]]+AWS_PROFILE=" "$1"' _ "$DOTFILES/zsh/.zshrc"
 if [[ -f "$HOME/.zshrc.local" ]]; then
   zshrc_local_perms_600() {
     [[ "$(stat -f '%Lp' "$HOME/.zshrc.local" 2>/dev/null \

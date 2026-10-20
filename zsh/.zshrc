@@ -46,6 +46,7 @@ setopt SHARE_HISTORY
 # ── Aliases ───────────────────────────────────────────────────────────────────
 alias vim="nvim"
 alias vi="nvim"
+alias awslogin="bash ${${:-$HOME/.zshrc}:A:h:h}/tools/aws-google-login.sh"
 
 if command -v eza &>/dev/null; then
   alias ls="eza --icons"
