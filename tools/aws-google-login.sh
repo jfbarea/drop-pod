@@ -183,10 +183,10 @@ configure() {
   step "Configuración"
   local url="${SAML_URL:-$(ini_value url)}"
   local profile="${AWS_PROFILE_NAME:-$(ini_value aws_profile)}"
-  local username
+  local username="$(ini_value username)"
   [[ -n "$url" ]] || url="$(ask 'Enlace de la app AWS en Google (botón derecho → copiar enlace)' '')"
   [[ -n "$profile" ]] || profile="$(ask 'Nombre del perfil de AWS' '')"
-  username="$(ask 'Email de Google' "$(ini_value username)")"
+  [[ -n "$username" ]] || username="$(ask 'Email de Google' '')"
 
   local out
   out="$(saml2aws configure \
@@ -200,14 +200,22 @@ configure() {
 $out"
   aws configure set region "$AWS_REGION" --profile "$profile"
   PROFILE="$profile"
-  ok "perfil '$PROFILE' en $AWS_REGION"
+  GOOGLE_USER="$username"
+  ok "perfil '$PROFILE' en $AWS_REGION ($GOOGLE_USER)"
+}
+
+has_saved_password() {
+  # saml2aws 2.36.19 la guarda en macOS como internet password de accounts.google.com con esta etiqueta.
+  [[ "$OS" == darwin ]] &&
+    security find-internet-password -s accounts.google.com -l "saml2aws Credentials" -a "$GOOGLE_USER" >/dev/null 2>&1
 }
 
 login() {
   step "Login con Google"
-  # Sin --skip-prompt a propósito: en 2.36.19 también se salta la pregunta de la contraseña y la toma
-  # del llavero; en una máquina limpia falla con "Error validating login details.: Empty password".
   local cmd=(saml2aws login)
+  # --skip-prompt también se salta la pregunta de la contraseña y la toma del llavero; sin contraseña
+  # guardada falla con "Error validating login details.: Empty password".
+  has_saved_password && cmd+=(--skip-prompt)
   # WSL y Linux sin escritorio no tienen servicio de keyring, y saml2aws falla al guardar la contraseña.
   [[ "$OS" == linux ]] && cmd+=(--disable-keychain)
   # mintty (la consola por defecto de Git Bash) no es una consola de Windows: sin winpty, saml2aws.exe
