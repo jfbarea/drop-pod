@@ -137,7 +137,10 @@ colapsado. Nunca un muro de 1.000 líneas abierto.
 - **Agrupa en bandas `.groupbar`** por orden de lectura, no alfabético: componente compartido → consumidores
   → tests → infra/ruido. Cierra con una banda «Lectura de conjunto» de un párrafo.
 - **Por fichero: el hunk primero, la prosa después.** El hunk en un `<pre>` con `+` verde, `-` rojo,
-  contexto apagado y la cabecera `@@` en azul.
+  contexto apagado y la cabecera `@@` en azul. Si cada línea es un `<span>` con `display:block` y entre spans
+  queda el `\n` del fuente, el `<pre>` pinta ese `\n` como una línea en blanco más: pon
+  `pre.hunk{white-space:normal;tab-size:2}` y `white-space:pre` solo en los spans. El `tab-size` es porque los
+  repos con tabuladores salen con 8 columnas de sangría por defecto.
 - **Separa el reflow del cambio real, siempre y de forma visible.** Un bloque `.reflow` que diga «Reflow, no
   cambio» y explique por qué es equivalente (precedencia explicitada, Prettier colapsando líneas, `{" "}`
   para conservar un espacio). Un diff de 16 líneas donde solo una es funcional tiene que leerse así.
