@@ -34,6 +34,7 @@ Cuando generes HTML como **output principal** para el usuario (artefactos de `/r
 - **Tipografía del scriptorium.** Titulares con `"Fraunces",serif`; texto corrido con `"Newsreader",Georgia,serif`; metadatos, código y etiquetas con `"JetBrains Mono",monospace`. Carga las fuentes con el `<link>` de Google Fonts (`Fraunces`, `Newsreader`, `JetBrains Mono`) **con fallback de sistema** en cada `font-family`, para que offline degrade a serif/monospace sin romperse.
 - Para **estados semánticos** (crítico, warning, info en reviews/audits) añade rojo/amarillo/azul saturados que contrasten sobre el `--paper`, pero deja el verde `--accent` como color de marca y mantén el resto de la UI en los tokens de arriba.
 - **Esquemas y diagramas en SVG, nunca en texto plano.** Cualquier diagrama (flujos, arquitecturas, secuencias, árboles, grafos, relaciones) se dibuja como SVG inline, no como ASCII art ni bloques de texto preformateado. El SVG usa los tokens del scriptorium (`--ink` para trazos y texto, `--accent` para resaltados, `--line`/`--faint` para conectores y bordes, `--surface`/`--surface-2` para rellenos de nodos), tipografía del scriptorium en las etiquetas, y `viewBox` + ancho `100%` para que escale dentro del iframe estrecho. Autocontenido como el resto del HTML.
+- **Diffs y código en `<pre>`, a interlineado simple.** Vale para todo hunk (walkthrough, hallazgos de una review, quiz…). Si cada línea es un `<span>` con `display:block` y entre spans queda el `\n` del fuente, el `<pre>` pinta ese `\n` como una línea en blanco más y el diff sale a doble espacio. Pon `pre.hunk{white-space:normal;tab-size:2}` y `white-space:pre` solo en los spans (en print, `pre-wrap` en los spans, nunca en el `pre`). El `tab-size` es porque los repos con tabuladores salen con 8 columnas de sangría por defecto.
 - **Bloque `@media print` obligatorio (PDF guapo).** El scriptorium exporta cada página a PDF imprimiendo desde el navegador, así que toda página lleva su propia hoja de impresión para que el PDF salga maquetado, no como un volcado de pantalla:
   - Tipografía en `pt` legibles en A4: cuerpo ~11pt y titulares jerarquizados (`h1` ~20pt, `h2` ~15pt, `h3` ~13pt), no los tamaños grandes de pantalla.
   - `@page{size:A4;margin:14mm}` para que los saltos tengan respiro, y el fondo `--paper` puesto en el **root (`html`)** dentro de `@media print`, que es lo que hace que el navegador pinte también el margen de la página y no queden franjas blancas alrededor del diseño oscuro.
@@ -137,10 +138,7 @@ colapsado. Nunca un muro de 1.000 líneas abierto.
 - **Agrupa en bandas `.groupbar`** por orden de lectura, no alfabético: componente compartido → consumidores
   → tests → infra/ruido. Cierra con una banda «Lectura de conjunto» de un párrafo.
 - **Por fichero: el hunk primero, la prosa después.** El hunk en un `<pre>` con `+` verde, `-` rojo,
-  contexto apagado y la cabecera `@@` en azul. Si cada línea es un `<span>` con `display:block` y entre spans
-  queda el `\n` del fuente, el `<pre>` pinta ese `\n` como una línea en blanco más: pon
-  `pre.hunk{white-space:normal;tab-size:2}` y `white-space:pre` solo en los spans. El `tab-size` es porque los
-  repos con tabuladores salen con 8 columnas de sangría por defecto.
+  contexto apagado y la cabecera `@@` en azul (marcado en `## Output en HTML`, «Diffs y código en `<pre>`»).
 - **Separa el reflow del cambio real, siempre y de forma visible.** Un bloque `.reflow` que diga «Reflow, no
   cambio» y explique por qué es equivalente (precedencia explicitada, Prettier colapsando líneas, `{" "}`
   para conservar un espacio). Un diff de 16 líneas donde solo una es funcional tiene que leerse así.
