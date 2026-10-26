@@ -708,6 +708,10 @@ setup_space_hotkeys() {
   bash "$DOTFILES/macos/space-hotkeys.sh"
 }
 
+setup_arc_shortcuts() {
+  bash "$DOTFILES/macos/arc-shortcuts.sh"
+}
+
 setup_scriptorium_linux() {
   # Equivalente Linux de setup_scriptorium: mismo servidor, pero en :8081 (el
   # 8080 lo ocupa magos-wiki.service), arrancado por una unit de usuario de
@@ -878,6 +882,11 @@ fi
 # macOS: ctrl+1..9 salta al escritorio N (9 escritorios + symbolichotkeys)
 if [[ "$PLATFORM" == "macos" ]]; then
   run_step "space-hotkeys" setup_space_hotkeys
+fi
+
+# macOS: cmd+[ / cmd+] cambia de espacio en Arc (App Shortcuts)
+if [[ "$PLATFORM" == "macos" ]]; then
+  run_step "arc-shortcuts" setup_arc_shortcuts
 fi
 
 # Linux: acceso por nombre .local (scriptorium/strategium) vía CNAMEs mDNS +

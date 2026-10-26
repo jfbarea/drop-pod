@@ -564,6 +564,18 @@ if [[ "$PLATFORM" == "macos" ]]; then
              all(range(118;127); \$h[tostring] | .enabled == true and .value.parameters[2] == 262144)" >/dev/null'
 fi
 
+# ── 7g'. macOS: Arc cambia de espacio con cmd+[ / cmd+] ───────────────────────
+if [[ "$PLATFORM" == "macos" ]]; then
+  section "macOS — espacios de Arc (cmd+[ / cmd+])"
+  check "arc-shortcuts.sh existe" test -x "$DOTFILES/macos/arc-shortcuts.sh"
+  check "install.sh invoca arc-shortcuts" \
+    grep -q 'run_step "arc-shortcuts"' "$DOTFILES/install.sh"
+  check "Arc: Previous Space = cmd+[" \
+    bash -c '[[ "$(defaults export company.thebrowser.Browser - | plutil -extract "NSUserKeyEquivalents.Previous Space" raw -o - -)" == "@[" ]]'
+  check "Arc: Next Space = cmd+]" \
+    bash -c '[[ "$(defaults export company.thebrowser.Browser - | plutil -extract "NSUserKeyEquivalents.Next Space" raw -o - -)" == "@]" ]]'
+fi
+
 # ── 7h. macOS: Tailscale ──────────────────────────────────────────────────────
 if [[ "$PLATFORM" == "macos" ]]; then
   section "macOS — Tailscale"
