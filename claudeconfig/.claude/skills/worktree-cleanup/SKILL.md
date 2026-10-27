@@ -16,7 +16,7 @@ Formato `ruta|rama-de-integración`. Para ampliar, añade una línea.
 
 ```bash
 REPOS=(
-  "$HOME/src/revel/revel-app|development"
+  "$HOME/src/work/revel/revel-app|development"
 )
 ```
 

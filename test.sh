@@ -429,7 +429,7 @@ if [[ "$PLATFORM" == "macos" ]]; then
   check "skill contempla el estado silencioso"       grep -q 'ESTADO: silencioso' "$skill"
   check "skill escribe siempre el informe"           grep -q 'Escribe siempre el informe' "$skill"
   check "skill escribe fuera de ~/.claude"    bash -c '! grep -q "claude/logs" "'"$skill"'"'
-  check "skill lista los repos configurables"        grep -q 'src/revel/revel-app|development' "$skill"
+  check "skill lista los repos configurables"        grep -q 'src/work/revel/revel-app|development' "$skill"
 fi
 
 # ── 7c. macOS: servidor web scriptorium ─────────────────────────────────────
