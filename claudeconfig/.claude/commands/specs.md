@@ -32,6 +32,7 @@ version: 1
    - Argumento que describe algo nuevo → propón un `<slug>` y confírmalo conmigo antes de crear el fichero.
    - Sin argumento → si `plan/specs/_active` apunta a una spec sin `APPROVED`, retómala; si no, pregúntame qué quiero especificar.
 2. Si venimos de `/research` con hand-off, lee `plan/research/<slug>.md` y úsalo como material de partida: no me vuelvas a preguntar lo que ya está decidido ahí. El interrogatorio arranca por lo que el research dejó abierto.
+   Si venimos de `/clickup`, el issue (título, descripción, criterios de aceptación) es ese material de partida: vuélcalo en el primer borrador, anota el `taskId` en la bitácora y pregunta solo por lo que el issue no resuelve.
 3. Antes de la primera pregunta, oriéntate en el repo: lee `SPEC.md` si existe, y localiza el código que la feature va a tocar. Las preguntas tienen que estar informadas por lo que ya hay, no ser un cuestionario genérico.
 4. Comprueba si hay una PR abierta parecida (`gh pr list --state open --json number,title,headRefName,author,url`). Si hay solape, dímelo (número, título, autor, URL y en qué se parece) antes de seguir. Si `gh` falla o no hay remote, dilo y continúa.
 

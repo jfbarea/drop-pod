@@ -241,6 +241,11 @@ check "integrator no escribe estado" \
   grep -q 'NO escribes `_state.json`' "$integrator_agent"
 check "/research hace hand-off a /specs" \
   grep -q 'Hand-off a /specs' "$research_cmd"
+clickup_cmd="$DOTFILES/claudeconfig/.claude/commands/clickup.md"
+check "/clickup pasa las features por /specs" \
+  grep -q 'feature/mejora → sigue el flujo de `/specs`' "$clickup_cmd"
+check "/specs acepta un issue de /clickup como material de partida" \
+  grep -q 'Si venimos de `/clickup`' "$specs_cmd"
 check "/research ya no salta a /feature" \
   bash -c "! grep -q 'READY_FOR_FEATURE' '$research_cmd'"
 

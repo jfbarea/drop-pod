@@ -7,9 +7,9 @@ Recibes la URL (o el ID) del issue en `$ARGUMENTS`. Si no hay argumento, pídeme
 3. Infiere el repo destino entre los subdirectorios de `~/src/revel`: `driverevel-api`, `revel-app`, `revel-auth`, `revel-auto-transport`, `revel-erp`, `revel-web`. Usa como señales el Space/List/Folder, los tags, el título y la descripción (p.ej. menciones explícitas al repo, "web", "API", "auth", "ERP"…). Enséñame el repo inferido **con el porqué** y ESPERA mi confirmación antes de continuar. Si no lo tienes claro, pregúntame en vez de adivinar.
 4. Una vez confirmado, trabaja dentro de ese repo (`~/src/revel/<repo>`).
 5. Clasifica el issue como **feature** o **bug** a partir del contenido y los tags:
-   - feature/mejora → sigue el flujo de `/feature`, usando el issue como input principal (no me preguntes la feature desde cero): título del issue → slug del hito; criterios de aceptación de la tarea → criterios de aceptación del hito.
+   - feature/mejora → sigue el flujo de `/specs` (`specs.md`, junto a este fichero), con el issue como material de partida: título del issue → slug propuesto; descripción y criterios de aceptación de la tarea → primer borrador de la spec. El interrogatorio arranca por lo que el issue deja abierto, no desde cero. La implementación llega después por el hand-off de `/specs` (`/feature-parallel` o `/feature`), nunca antes de que la spec esté `APPROVED`.
    - bug → sigue el flujo de `/debug`, usando el síntoma/descripción del issue como punto de partida.
-6. Respeta los gates de esos flujos: enséñame el hito/plan y espera mi OK antes de construir.
+6. Respeta los gates de esos flujos: en feature, la spec no se implementa hasta que yo la apruebe; en bug, enséñame el plan y espera mi OK antes de tocar código.
 7. No comentes ni cambies el estado de la tarea en ClickUp salvo que te lo pida explícitamente. Al terminar, recuérdame el `taskId` por si quiero actualizarlo a mano.
    - Si te pido que comente, el comentario se sostiene solo: sin enlaces ni referencias al scriptorium, que es local y solo lo abro yo (ver `### El scriptorium es personal` en el `CLAUDE.md` global). El `fichero:línea`, el nombre real de la constante o el input que rompe van copiados dentro; enlazar el PR o el blob de GitHub sí vale.
-8. El flujo seguido (/feature o /debug) incluye su walkthrough para el scriptorium al final; no lo omitas por venir de ClickUp.
+8. El flujo de implementación (/feature-parallel, /feature o /debug) incluye su walkthrough para el scriptorium al final; no lo omitas por venir de ClickUp.
