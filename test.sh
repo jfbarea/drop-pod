@@ -247,6 +247,10 @@ check "/feature-parallel corre el gate sobre el conjunto" \
   grep -q 'Gate de integración' "$fpar_cmd"
 check "/feature-parallel dice cuándo no paralelizar" \
   grep -q 'Cuándo NO paralelizar' "$fpar_cmd"
+check "/feature-parallel para tras la ola de contratos" \
+  grep -q 'Tras la ola de contratos, para y espera mi OK' "$fpar_cmd"
+check "worker señala dónde está el riesgo" \
+  grep -q '^RISK:' "$worker_agent"
 check "worker no hace git de escritura" \
   grep -q 'Git de escritura: nada' "$worker_agent"
 check "worker no escribe estado" \

@@ -42,7 +42,8 @@ FILES_WRITTEN: una ruta por línea, incluyendo creados y borrados
 FILES_OUTSIDE_PARTITION: rutas que has necesitado tocar fuera de tu lista, o "ninguna"
 TESTS: comando ejecutado y resultado
 CRITERIA: qué criterios cierras y cómo se comprueba cada uno
-NOTES: decisiones no obvias
+NOTES: lo que has decidido tú porque la spec no lo fijaba, o "ninguna"
+RISK: fichero:línea donde un error sale caro, y por qué
 BLOCKERS: sólo si STATUS es ABORTED — qué te ha parado y qué haría falta
 ```
 

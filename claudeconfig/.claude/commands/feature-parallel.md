@@ -94,7 +94,8 @@ El prompt de cada `worker` lleva: id y objetivo de la tarea, la lista exhaustiva
    - `CHANGES_REQUESTED` → relanza **sólo** los workers de las tareas con bloqueantes, con el informe en el prompt, y vuelve al paso 4.
    - `BLOCKED` → párate y dímelo.
 8. **Commits, uno por tarea**, en orden topológico: `git add` con los ficheros de esa tarea y mensaje `feat(<slug>): <resumen de la tarea>`. Así cada commit sigue siendo un cambio lógico aunque el trabajo se hiciera en paralelo. Anota el `commit_sha` en su tarea y ponla en `DONE`.
-9. Sube `wave` en `_state.json`, resúmeme la ola en tres líneas y abre la siguiente.
+9. Sube `wave` en `_state.json` y dame la guía de revisión de la ola, una línea por tarea: qué cambia, las decisiones que la spec no fijaba (del `NOTES` del worker) y dónde está el riesgo (de su `RISK`).
+10. **Tras la ola de contratos, para y espera mi OK.** Es lo más barato de revisar y sobre lo que se apoyan todas las demás: un contrato mal puesto se multiplica por cada worker que lo consume. En el resto de olas, abre la siguiente.
 
 ## 4. Cuándo NO paralelizar
 
@@ -103,6 +104,7 @@ Decirlo a tiempo es parte del trabajo. Párame y proponme `/feature` cuando:
 - **El grafo sale en cadena** — cada tarea depende de la anterior. N agentes en serie hacen lo mismo que uno, más caro y con más piezas que se rompen.
 - **Una ola tiene una sola tarea.** No montes ola: no hay nada que paralelizar y el ciclo secuencial sale más barato.
 - **La partición disjunta no sale sin inventarla.** Una partición falsa es lo peor de los dos mundos: te da todo verde y te deja ficheros pisados.
+- **Quiero revisar paso a paso.** Aquí el código llega por olas enteras y solo paro tras la de contratos. Si el cuello de botella de esta feature es mi revisión y no el tiempo de escritura, paralelizar no lo mueve: `/feature` para en cada hito.
 - **Techo práctico: 4 workers por ola.** Por encima, el gate y la integración se vuelven el cuello de botella y el riesgo de desborde se multiplica sin que baje el tiempo total.
 
 ## 5. Estado de la feature
