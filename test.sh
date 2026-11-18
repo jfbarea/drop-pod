@@ -209,6 +209,26 @@ check "/feature no inventa el alcance" \
   grep -q 'para y dime que hay que pasar por `/specs`' "$feature_cmd"
 check "/feature deriva hitos de los criterios de la spec" \
   grep -q 'derivados de los criterios de aceptación de la spec' "$feature_cmd"
+builder_agent="$DOTFILES/claudeconfig/.claude/agents/builder.md"
+reviewer_agent="$DOTFILES/claudeconfig/.claude/agents/reviewer.md"
+check "/feature para después de cada hito" \
+  grep -q 'avanza \*\*un hito y para\*\*' "$feature_cmd"
+check "/feature acota el tamaño del hito" \
+  grep -q '200 líneas de diff sin contar tests' "$feature_cmd"
+check "/feature abre por los contratos" \
+  grep -q 'El primer hito es de contratos' "$feature_cmd"
+check "/feature entrega guía de revisión por hito" \
+  grep -q 'guía de revisión' "$feature_cmd"
+check "/feature permite reservar un hito al humano" \
+  grep -q 'autor: humano' "$feature_cmd"
+check "builder escribe los tests primero" \
+  grep -q 'Los tests primero' "$builder_agent"
+check "builder no implementa un hito que no cabe" \
+  grep -q 'Si no cabe, no lo implementes' "$builder_agent"
+check "builder declara sus decisiones en review_guide" \
+  grep -q 'review_guide' "$builder_agent"
+check "reviewer busca decisiones sin declarar" \
+  grep -q 'Decisiones sin declarar' "$reviewer_agent"
 
 fpar_cmd="$DOTFILES/claudeconfig/.claude/commands/feature-parallel.md"
 worker_agent="$DOTFILES/claudeconfig/.claude/agents/worker.md"
