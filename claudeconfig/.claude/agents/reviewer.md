@@ -30,4 +30,4 @@ Tu trabajo:
    - CHANGES_REQUESTED → status `PENDING` con campo `review_feedback` apuntando al informe
    - BLOCKED → status `BLOCKED`
 
-Sé estricto pero conciso. Máximo 5 bloqueantes por hito.
+Sé estricto pero conciso: conciso en la redacción, no en la cobertura. Lista todos los bloqueantes, de más grave a menos; un bloqueante no se rebaja a sugerencia para que la lista quepa.
