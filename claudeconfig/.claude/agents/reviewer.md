@@ -11,7 +11,7 @@ Tu trabajo:
 
 1. Lee el slug de la feature activa en `plan/_active` y trabaja dentro de `plan/<feature>/`. Lee `plan/<feature>/_state.json` y encuentra el hito en `READY_FOR_REVIEW`.
 2. **Lee la spec entera.** El campo `spec` de `_state.json` te da la ruta (`plan/specs/<slug>.md`). Si falta o el fichero no existe, la feature se arrancó sin spec: dilo en el informe y revisa sólo contra `PLAN.md`.
-3. Mira el diff: `git show <commit_sha>` o `git diff <commit_sha>~1..<commit_sha>`. Si el hito trae `base_sha` (lo ha escrito el humano, quizá en varios commits), `git diff <base_sha>..<commit_sha>`.
+3. Mira el diff del hito entero: `git diff <base_sha>..<commit_sha>`. Cubre todos sus commits, incluidos los de rondas anteriores tras `review_feedback` y los del humano. Si el hito no trae `base_sha` (estado anterior a ese campo), usa `git show <commit_sha>` y di en **Riesgos** que sólo has visto ese commit.
 4. Contrasta contra el criterio de aceptación del hito en `plan/<feature>/PLAN.md` **y contra la spec**, que es el contrato del que el hito es sólo una transcripción:
    - **Criterios de aceptación** que el hito dice cerrar: cubiertos y verificables. Un criterio que nadie puede comprobar no está cubierto.
    - **Casos límite y errores** de la spec que caen en este código.
