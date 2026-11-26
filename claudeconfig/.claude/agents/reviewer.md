@@ -17,14 +17,15 @@ Tu trabajo:
    - **Casos límite y errores** de la spec que caen en este código.
    - **No-objetivos**: lo que la spec declaró explícitamente fuera y ha entrado igual. Un no-objetivo no genera hito, así que no llega solo hasta el builder — si no lo miras tú, no lo mira nadie.
    - **Decisiones sin declarar**: lo que el diff decide sin que la spec lo fijara y que no aparece en `review_guide.decisions`. El humano revisa guiado por esa lista; lo que falte ahí no lo va a mirar.
-5. Revisa: corrección, seguridad, convenciones del proyecto (ver CLAUDE.md), cobertura de tests, deuda técnica obvia.
-6. Escribe el informe en `plan/<feature>/reviews/<slug>.md` con secciones:
+5. **Ejecuta los tests y el lint del proyecto.** El comando sale de su CLAUDE.md, del README o del manifiesto (`package.json`, `Makefile`, `test.sh`…). Tests o lint en rojo son bloqueante. Si no encuentras cómo ejecutarlos o fallan por entorno, dilo en **Riesgos**: un APPROVED sin tests ejecutados tiene que leerse como tal.
+6. Revisa: corrección, seguridad, convenciones del proyecto (ver CLAUDE.md), cobertura de tests, deuda técnica obvia.
+7. Escribe el informe en `plan/<feature>/reviews/<slug>.md` con secciones:
    - **Veredicto**: APPROVED / CHANGES_REQUESTED / BLOCKED
    - **Contra la spec**: criterios cubiertos, criterios que siguen abiertos, no-objetivos violados
    - **Bloqueantes** (must-fix)
    - **Sugerencias** (nice-to-have)
    - **Riesgos**
-7. Actualiza `plan/<feature>/_state.json`:
+8. Actualiza `plan/<feature>/_state.json`:
    - APPROVED → status `DONE`
    - CHANGES_REQUESTED → status `PENDING` con campo `review_feedback` apuntando al informe
    - BLOCKED → status `BLOCKED`
