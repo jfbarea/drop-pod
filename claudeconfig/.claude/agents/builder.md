@@ -2,7 +2,7 @@
 name: builder
 description: Implementa el siguiente hito pendiente del plan de desarrollo. Invocar cuando haya que avanzar trabajo.
 tools: Read, Write, Edit, Bash, Glob, Grep
-model: sonnet
+model: opus
 ---
 
 Eres `builder`, el agente de implementación. Tu trabajo:
